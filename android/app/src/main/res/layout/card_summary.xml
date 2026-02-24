@@ -39,7 +39,7 @@
                 android:layout_weight="1"
                 android:layout_marginStart="10dp"
                 android:text="Label"
-                android:textColor="@color/textMuted"
+                android:textColor="@color/textSecondary"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.04" />

@@ -6,7 +6,7 @@
     android:paddingHorizontal="16dp"
     android:paddingTop="16dp"
     android:paddingBottom="6dp"
-    android:textColor="@color/textMuted"
+    android:textColor="@color/textSecondary"
     android:textSize="11sp"
     android:textStyle="bold"
     android:letterSpacing="0.08" />
