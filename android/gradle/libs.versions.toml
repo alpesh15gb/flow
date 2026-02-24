@@ -17,7 +17,7 @@ work = "2.9.0"
 datastore = "1.0.0"
 coroutines = "1.7.3"
 mpandroidchart = "v3.1.0"
-mlkit-text-recognition = "16.0.0"
+mlkit-text-recognition = "16.0.1"
 
 [libraries]
 androidx-activity-ktx          = { group = "androidx.activity",           name = "activity-ktx",             version.ref = "activity"        }
