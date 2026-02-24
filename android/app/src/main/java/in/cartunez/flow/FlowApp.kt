@@ -13,7 +13,8 @@ class FlowApp : Application() {
     val apiService: ApiService by lazy { RetrofitClient.create() }
     val prefsStore: PrefsStore by lazy { PrefsStore(this) }
     val slipsRepository: SlipsRepository by lazy {
-        SlipsRepository(database.partyDao(), database.slipDao(), database.slipCollectionDao())
+        SlipsRepository(database.partyDao(), database.slipDao(), database.slipCollectionDao(),
+            apiService, prefsStore)
     }
 
     companion object {

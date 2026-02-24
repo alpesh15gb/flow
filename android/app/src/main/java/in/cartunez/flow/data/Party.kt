@@ -8,5 +8,6 @@ import java.util.UUID
 data class Party(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val name: String,
+    val synced: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )

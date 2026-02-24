@@ -24,9 +24,10 @@ data class Slip(
     val amount: Double,
     val amountPaid: Double = 0.0,
     val date: String,                           // YYYY-MM-DD
-    val imageUri: String? = null,               // absolute path in filesDir
+    val imageUri: String? = null,               // absolute path in filesDir (not synced)
     val status: String = SlipStatus.REVIEW.name,
     val linkedTxId: String? = null,
     val note: String? = null,
+    val synced: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )

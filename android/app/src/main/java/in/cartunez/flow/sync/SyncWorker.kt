@@ -10,13 +10,16 @@ class SyncWorker(ctx: Context, params: WorkerParameters) : CoroutineWorker(ctx, 
 
     override suspend fun doWork(): Result {
         val app = applicationContext as FlowApp
-        val repo = TransactionRepository(
+        val txRepo = TransactionRepository(
             app.database.transactionDao(),
             app.apiService,
             app.prefsStore
         )
         return try {
-            repo.sync()
+            // Slip sync runs first so both use the same lastSync timestamp.
+            // txRepo.sync() updates lastSync at the end.
+            app.slipsRepository.sync()
+            txRepo.sync()
             Result.success()
         } catch (e: Exception) {
             Result.retry()

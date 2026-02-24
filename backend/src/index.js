@@ -19,6 +19,7 @@ app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISO
 // API routes
 app.use('/api/auth',      require('./routes/auth'));
 app.use('/api/sync',      require('./routes/sync'));
+app.use('/api/slips',     require('./routes/slips'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 
 // Web dashboard — serve static files

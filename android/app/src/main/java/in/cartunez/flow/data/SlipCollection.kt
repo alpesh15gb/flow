@@ -21,5 +21,6 @@ data class SlipCollection(
     val partyId: String,
     val amountPaid: Double,
     val date: String,
-    val note: String? = null
+    val note: String? = null,
+    val synced: Boolean = false
 )

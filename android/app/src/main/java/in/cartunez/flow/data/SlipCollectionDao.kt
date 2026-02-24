@@ -11,4 +11,10 @@ interface SlipCollectionDao {
 
     @Query("SELECT * FROM slip_collections WHERE partyId = :partyId ORDER BY date DESC")
     fun observeByParty(partyId: String): Flow<List<SlipCollection>>
+
+    @Query("SELECT * FROM slip_collections WHERE synced = 0")
+    suspend fun getUnsynced(): List<SlipCollection>
+
+    @Query("UPDATE slip_collections SET synced = 1 WHERE id IN (:ids)")
+    suspend fun markSynced(ids: List<String>)
 }

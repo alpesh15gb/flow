@@ -35,3 +35,44 @@ CREATE TABLE IF NOT EXISTS transactions (
 CREATE INDEX IF NOT EXISTS idx_transactions_user_updated ON transactions(user_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_transactions_user_date    ON transactions(user_id, date DESC);
 CREATE INDEX IF NOT EXISTS idx_users_device              ON users(device_id);
+
+-- Slip tracker: parties
+CREATE TABLE IF NOT EXISTS parties (
+  id          TEXT PRIMARY KEY,
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name        TEXT NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Slip tracker: slips (metadata only — images stay on-device)
+CREATE TABLE IF NOT EXISTS slips (
+  id           TEXT PRIMARY KEY,
+  user_id      UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  party_id     TEXT NOT NULL REFERENCES parties(id) ON DELETE CASCADE,
+  amount       NUMERIC(12,2) NOT NULL,
+  amount_paid  NUMERIC(12,2) NOT NULL DEFAULT 0,
+  date         DATE NOT NULL,
+  status       TEXT NOT NULL,
+  linked_tx_id TEXT,
+  note         TEXT,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Slip tracker: collection payments
+CREATE TABLE IF NOT EXISTS slip_collections (
+  id          TEXT PRIMARY KEY,
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  party_id    TEXT NOT NULL REFERENCES parties(id) ON DELETE CASCADE,
+  amount_paid NUMERIC(12,2) NOT NULL,
+  date        DATE NOT NULL,
+  note        TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_parties_user_updated       ON parties(user_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_slips_user_updated         ON slips(user_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_slips_party                ON slips(party_id);
+CREATE INDEX IF NOT EXISTS idx_slip_collections_user      ON slip_collections(user_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_slip_collections_party     ON slip_collections(party_id);

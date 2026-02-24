@@ -26,4 +26,10 @@ interface SlipDao {
 
     @Query("SELECT * FROM slips ORDER BY createdAt DESC")
     fun observeAll(): Flow<List<Slip>>
+
+    @Query("SELECT * FROM slips WHERE synced = 0")
+    suspend fun getUnsynced(): List<Slip>
+
+    @Query("UPDATE slips SET synced = 1 WHERE id IN (:ids)")
+    suspend fun markSynced(ids: List<String>)
 }

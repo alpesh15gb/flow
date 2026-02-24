@@ -20,4 +20,10 @@ interface PartyDao {
 
     @Query("SELECT * FROM parties WHERE id = :id")
     suspend fun getById(id: String): Party?
+
+    @Query("SELECT * FROM parties WHERE synced = 0")
+    suspend fun getUnsynced(): List<Party>
+
+    @Query("UPDATE parties SET synced = 1 WHERE id IN (:ids)")
+    suspend fun markSynced(ids: List<String>)
 }
