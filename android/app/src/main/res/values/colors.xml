@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#0F1117</color>
+    <color name="surface">#1A1D27</color>
+    <color name="border">#2A2D3A</color>
+    <color name="textPrimary">#E8EAF0</color>
+    <color name="textMuted">#7B7F93</color>
+    <color name="green">#22C55E</color>
+    <color name="red">#EF4444</color>
+    <color name="blue">#3B82F6</color>
+    <color name="yellow">#F59E0B</color>
+
+    <!-- Type badge backgrounds (15% opacity) -->
+    <color name="type_sale_bg">#2622C55E</color>
+    <color name="type_expense_bg">#26EF4444</color>
+    <color name="type_purchase_bg">#263B82F6</color>
+</resources>

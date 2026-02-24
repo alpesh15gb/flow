@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  flow-postgres:
+    image: postgres:15-alpine
+    container_name: flow-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-flowdb}
+      POSTGRES_USER: ${POSTGRES_USER:-flowuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - flow-postgres-data:/var/lib/postgresql/data
+      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    networks:
+      - flow-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-flowuser} -d ${POSTGRES_DB:-flowdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  flow-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: flow-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4100:4100"
+    environment:
+      NODE_ENV: production
+      PORT: 4100
+      DATABASE_URL: postgres://${POSTGRES_USER:-flowuser}:${POSTGRES_PASSWORD}@flow-postgres:5432/${POSTGRES_DB:-flowdb}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      flow-postgres:
+        condition: service_healthy
+    networks:
+      - flow-net
+
+volumes:
+  flow-postgres-data:
+    name: flow-postgres-data
+
+networks:
+  flow-net:
+    name: flow-net

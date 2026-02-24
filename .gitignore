@@ -1,0 +1,23 @@
+# Claude local config
+.claude/
+
+# Environment
+.env
+
+# Node
+backend/node_modules/
+backend/npm-debug.log*
+
+# Android build artifacts
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+android/**/*.iml
+android/.idea/
+android/captures/
+android/keystore/
+
+# OS
+.DS_Store
+Thumbs.db
