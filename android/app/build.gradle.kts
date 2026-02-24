@@ -15,7 +15,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "SERVER_URL", "\"https://flow.cartunez.in/api\"")
+        buildConfigField("String", "SERVER_URL", "\"https://flow.cartunez.in\"")
     }
 
     buildTypes {
@@ -40,9 +40,11 @@ android {
 dependencies {
     // Core
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.gridlayout)
 
     // ViewModel + LiveData
     implementation(libs.androidx.lifecycle.viewmodel.ktx)

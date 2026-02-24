@@ -2,6 +2,7 @@ package `in`.cartunez.flow.ui
 
 import androidx.lifecycle.*
 import `in`.cartunez.flow.data.*
+import `in`.cartunez.flow.network.ApiService
 import `in`.cartunez.flow.network.AuthRequest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -11,10 +12,11 @@ class MainViewModel(
     private val prefs: PrefsStore
 ) : ViewModel() {
 
-    private val _today = MutableLiveData(LocalDate.now())
-    val today: LiveData<LocalDate> = _today
+    // "daily" or "monthly"
+    private val _range = MutableLiveData("daily")
 
     val transactions = repo.observeAll().asLiveData()
+    val recentTransactions = repo.observeRecent(5).asLiveData()
 
     private val _summary = MutableLiveData<Summary>()
     val summary: LiveData<Summary> = _summary
@@ -25,7 +27,6 @@ class MainViewModel(
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
 
-    // SMS / WA suggestion pending confirmation
     private val _pendingTx = MutableLiveData<PendingTransaction?>()
     val pendingTx: LiveData<PendingTransaction?> = _pendingTx
 
@@ -38,7 +39,7 @@ class MainViewModel(
         _authState.value = if (prefs.getToken() != null) AuthState.Authenticated else AuthState.NeedsAuth
     }
 
-    fun authenticate(api: `in`.cartunez.flow.network.ApiService) = viewModelScope.launch {
+    fun authenticate(api: ApiService) = viewModelScope.launch {
         val deviceId = prefs.getDeviceId()
         val resp = runCatching { api.auth(AuthRequest(deviceId, null)) }.getOrNull()
         if (resp?.isSuccessful == true) {
@@ -46,16 +47,31 @@ class MainViewModel(
             prefs.saveAuth(body.token, body.user_id)
             _authState.value = AuthState.Authenticated
         } else {
-            _authState.value = AuthState.Error("Could not connect to server. Running offline.")
+            _authState.value = AuthState.Error("Running offline — could not reach server.")
         }
     }
 
-    fun refreshSummary() = viewModelScope.launch {
-        _summary.value = repo.dailySummary(LocalDate.now())
+    fun setRange(range: String) {
+        _range.value = range
+        refreshSummary()
     }
 
-    fun addTransaction(tx: Transaction) = viewModelScope.launch {
+    fun refreshSummary() = viewModelScope.launch {
+        val today = LocalDate.now()
+        _summary.value = if (_range.value == "monthly") {
+            repo.monthlySummary(today)
+        } else {
+            repo.dailySummary(today)
+        }
+    }
+
+    fun addTransaction(tx: `in`.cartunez.flow.data.Transaction) = viewModelScope.launch {
         repo.add(tx)
+        refreshSummary()
+    }
+
+    fun deleteTransaction(id: String) = viewModelScope.launch {
+        repo.delete(id)
         refreshSummary()
     }
 
@@ -66,7 +82,9 @@ class MainViewModel(
     fun acceptPending() = viewModelScope.launch {
         val p = _pendingTx.value ?: return@launch
         repo.add(
-            Transaction(amount = p.amount, type = p.type, note = p.note, date = LocalDate.now().toString())
+            `in`.cartunez.flow.data.Transaction(
+                amount = p.amount, type = p.type, note = p.note, date = LocalDate.now().toString()
+            )
         )
         _pendingTx.value = null
         refreshSummary()
@@ -92,5 +110,5 @@ data class PendingTransaction(
     val amount: Double,
     val type: String,
     val note: String,
-    val source: String   // "sms" or "whatsapp"
+    val source: String
 )

@@ -1,17 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#0F1117</color>
-    <color name="surface">#1A1D27</color>
-    <color name="border">#2A2D3A</color>
-    <color name="textPrimary">#E8EAF0</color>
-    <color name="textMuted">#7B7F93</color>
-    <color name="green">#22C55E</color>
-    <color name="red">#EF4444</color>
-    <color name="blue">#3B82F6</color>
-    <color name="yellow">#F59E0B</color>
+    <color name="ic_launcher_background">#2563EB</color>
 
-    <!-- Type badge backgrounds (15% opacity) -->
-    <color name="type_sale_bg">#2622C55E</color>
-    <color name="type_expense_bg">#26EF4444</color>
-    <color name="type_purchase_bg">#263B82F6</color>
+    <!-- Base -->
+    <color name="background">#F5F7FA</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="border">#E5E7EB</color>
+    <color name="textPrimary">#111827</color>
+    <color name="textMuted">#6B7280</color>
+
+    <!-- Semantic -->
+    <color name="green">#16A34A</color>
+    <color name="red">#DC2626</color>
+    <color name="blue">#2563EB</color>
+    <color name="yellow">#D97706</color>
+
+    <!-- Light tint backgrounds -->
+    <color name="type_sale_bg">#DCFCE7</color>
+    <color name="type_expense_bg">#FEE2E2</color>
+    <color name="type_purchase_bg">#DBEAFE</color>
+
+    <!-- Card accent strips -->
+    <color name="card_sale_accent">#16A34A</color>
+    <color name="card_expense_accent">#DC2626</color>
+    <color name="card_purchase_accent">#2563EB</color>
+    <color name="card_profit_accent">#D97706</color>
 </resources>

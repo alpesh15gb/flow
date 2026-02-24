@@ -13,13 +13,12 @@ class TransactionRepository(
     private val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
     fun observeAll(): Flow<List<Transaction>> = dao.observeAll()
+    fun observeRecent(limit: Int = 5): Flow<List<Transaction>> = dao.observeRecent(limit)
+    fun observeByType(type: String): Flow<List<Transaction>> = dao.observeByType(type)
 
-    fun observeByDate(date: LocalDate): Flow<List<Transaction>> =
-        dao.observeByDate(date.format(fmt))
+    suspend fun add(tx: Transaction): Boolean = dao.insert(tx) != -1L
 
-    suspend fun add(tx: Transaction): Boolean {
-        return dao.insert(tx) != -1L
-    }
+    suspend fun delete(id: String) = dao.deleteById(id)
 
     suspend fun dailySummary(date: LocalDate): Summary {
         val sums = dao.dailySummary(date.format(fmt))
@@ -43,36 +42,26 @@ class TransactionRepository(
     }
 
     suspend fun sync(): SyncResult {
-        val token = prefs.getToken() ?: return SyncResult.NoAuth
-        val bearer = "Bearer $token"
+        val token   = prefs.getToken() ?: return SyncResult.NoAuth
+        val bearer  = "Bearer $token"
         val deviceId = prefs.getDeviceId()
 
-        // Push unsynced
         val unsynced = dao.getUnsynced()
         if (unsynced.isNotEmpty()) {
             val remote = unsynced.map {
                 RemoteTransaction(it.id, it.amount, it.type, it.note, it.date, deviceId, null, null)
             }
             val resp = runCatching { api.push(bearer, PushRequest(remote)) }.getOrNull()
-            if (resp?.isSuccessful == true) {
-                dao.markSynced(unsynced.map { it.id })
-            }
+            if (resp?.isSuccessful == true) dao.markSynced(unsynced.map { it.id })
         }
 
-        // Pull new from server
         val since = prefs.getLastSync()
-        val pull = runCatching { api.pull(bearer, since) }.getOrNull()
+        val pull  = runCatching { api.pull(bearer, since) }.getOrNull()
         if (pull?.isSuccessful == true) {
             val body = pull.body()!!
             val incoming = body.transactions.map {
-                Transaction(
-                    id = it.id,
-                    amount = it.amount,
-                    type = it.type,
-                    note = it.note,
-                    date = it.date,
-                    synced = true
-                )
+                Transaction(id = it.id, amount = it.amount, type = it.type,
+                    note = it.note, date = it.date, synced = true)
             }
             if (incoming.isNotEmpty()) dao.insertAll(incoming)
             prefs.saveLastSync(body.server_time)

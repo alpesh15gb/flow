@@ -14,19 +14,20 @@ class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.VH>(DIFF)
 
     inner class VH(private val b: ItemTransactionBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(tx: Transaction) {
-            b.tvAmount.text = "₹${String.format("%,.0f", tx.amount)}"
-            b.tvNote.text   = tx.note ?: tx.type.replaceFirstChar { it.uppercase() }
-            b.tvDate.text   = tx.date
-            b.tvType.text   = tx.type.replaceFirstChar { it.uppercase() }
+            b.tvAmount.text  = "₹${String.format("%,.0f", tx.amount)}"
+            b.tvNote.text    = tx.note?.ifBlank { null } ?: tx.type.replaceFirstChar { it.uppercase() }
+            b.tvDate.text    = tx.date
+            b.tvType.text    = tx.type.replaceFirstChar { it.uppercase() }
 
-            val (bgColor, textColor) = when (tx.type) {
-                "sale"     -> Pair(R.color.type_sale_bg,     R.color.green)
-                "expense"  -> Pair(R.color.type_expense_bg,  R.color.red)
-                "purchase" -> Pair(R.color.type_purchase_bg, R.color.blue)
-                else       -> Pair(R.color.surface,          R.color.textPrimary)
+            val (icon, iconBg, amountColor) = when (tx.type) {
+                "sale"     -> Triple("↑", R.color.type_sale_bg,     R.color.green)
+                "expense"  -> Triple("↓", R.color.type_expense_bg,  R.color.red)
+                "purchase" -> Triple("⬤", R.color.type_purchase_bg, R.color.blue)
+                else       -> Triple("•", R.color.border,            R.color.textPrimary)
             }
-            b.tvType.backgroundTintList = ContextCompat.getColorStateList(b.root.context, bgColor)
-            b.tvType.setTextColor(ContextCompat.getColor(b.root.context, textColor))
+            b.tvTypeIcon.text = icon
+            b.tvTypeIcon.backgroundTintList = ContextCompat.getColorStateList(b.root.context, iconBg)
+            b.tvAmount.setTextColor(ContextCompat.getColor(b.root.context, amountColor))
         }
     }
 
