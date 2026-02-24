@@ -1,8 +1,11 @@
 package `in`.cartunez.flow.ui
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -26,11 +29,24 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Pop fragment backstack on back press (for PartyDetail / ManageParties)
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (supportFragmentManager.backStackEntryCount > 0) {
+                    supportFragmentManager.popBackStack()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
+
         // Nav listener is the single place that swaps fragments
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home    -> { loadFragment(HomeFragment());    true }
                 R.id.nav_history -> { loadFragment(HistoryFragment()); true }
+                R.id.nav_slips   -> { loadFragment(SlipsFragment());   true }
                 else             -> false
             }
         }
@@ -40,8 +56,35 @@ class MainActivity : AppCompatActivity() {
             binding.bottomNav.selectedItemId = R.id.nav_home
         }
 
+        handleShareIntent(intent)
         requestSmsPermission()
         scheduleSyncWorker()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleShareIntent(intent)
+    }
+
+    private fun handleShareIntent(intent: Intent?) {
+        if (intent?.action == Intent.ACTION_SEND && intent.type?.startsWith("image/") == true) {
+            val uri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+            // Switch to Slips tab, then pass URI to SlipsFragment once it's ready
+            binding.bottomNav.selectedItemId = R.id.nav_slips
+            val slipsFragment = supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? SlipsFragment
+            if (slipsFragment != null) {
+                slipsFragment.pendingShareUri = uri
+            } else {
+                // Fragment not attached yet — post to let it settle
+                binding.root.post {
+                    (supportFragmentManager.findFragmentById(R.id.fragmentContainer) as? SlipsFragment)
+                        ?.let { it.pendingShareUri = uri }
+                    ?: run {
+                        SlipReviewSheet.newInstance(uri).show(supportFragmentManager, "slip_review")
+                    }
+                }
+            }
+        }
     }
 
     /** Called by HomeFragment's "See all →" link */

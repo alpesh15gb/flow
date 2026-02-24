@@ -74,4 +74,7 @@ dependencies {
 
     // MPAndroidChart (lightweight charts)
     implementation(libs.mpandroidchart)
+
+    // ML Kit — on-device OCR for slip amount detection
+    implementation(libs.mlkit.text.recognition)
 }

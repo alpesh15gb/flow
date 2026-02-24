@@ -8,4 +8,8 @@
         android:id="@+id/nav_history"
         android:icon="@drawable/ic_history"
         android:title="History" />
+    <item
+        android:id="@+id/nav_slips"
+        android:icon="@drawable/ic_slips"
+        android:title="Slips" />
 </menu>
