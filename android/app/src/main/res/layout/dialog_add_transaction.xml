@@ -4,121 +4,151 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@color/surface"
-    android:paddingTop="8dp">
+    android:background="@drawable/bg_bottom_sheet"
+    android:paddingTop="12dp">
 
     <!-- Drag handle -->
     <View
-        android:layout_width="32dp"
+        android:layout_width="36dp"
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"
-        android:background="#E0E0E0"
-        android:backgroundTint="@color/border" />
-
-    <TextView
-        android:id="@+id/tvTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Add Transaction"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:textColor="@color/textPrimary"
-        android:paddingHorizontal="24dp"
-        android:layout_marginBottom="20dp" />
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/bg_handle" />
 
     <!-- Type selector -->
-    <com.google.android.material.button.MaterialButtonToggleGroup
-        android:id="@+id/toggleType"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="20dp"
-        app:singleSelection="true"
-        app:selectionRequired="true">
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="28dp">
 
-        <Button
+        <LinearLayout
             android:id="@+id/btnTypeSale"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="52dp"
             android:layout_weight="1"
-            android:text="Sale"
-            android:textSize="12sp"
-            style="@style/Widget.Material3.Button.OutlinedButton" />
+            android:layout_marginEnd="6dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_type_sale_selected"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="↑" android:textColor="@color/green" android:textSize="16sp" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sale" android:textColor="@color/green" android:textSize="11sp"/>
+        </LinearLayout>
 
-        <Button
+        <LinearLayout
             android:id="@+id/btnTypeExpense"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="52dp"
             android:layout_weight="1"
-            android:text="Expense"
-            android:textSize="12sp"
-            style="@style/Widget.Material3.Button.OutlinedButton" />
+            android:layout_marginHorizontal="3dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_type_unselected"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="↓" android:textColor="@color/textSecondary" android:textSize="16sp" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Expense" android:textColor="@color/textSecondary" android:textSize="11sp"/>
+        </LinearLayout>
 
-        <Button
+        <LinearLayout
             android:id="@+id/btnTypePurchase"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="52dp"
             android:layout_weight="1"
-            android:text="Purchase"
-            android:textSize="12sp"
-            style="@style/Widget.Material3.Button.OutlinedButton" />
-    </com.google.android.material.button.MaterialButtonToggleGroup>
+            android:layout_marginStart="6dp"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="@drawable/bg_type_unselected"
+            android:clickable="true"
+            android:focusable="true">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⬤" android:textColor="@color/textSecondary" android:textSize="14sp" android:textStyle="bold"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Purchase" android:textColor="@color/textSecondary" android:textSize="11sp"/>
+        </LinearLayout>
+    </LinearLayout>
 
-    <!-- Amount -->
+    <!-- Amount display -->
+    <TextView
+        android:id="@+id/tvAmountDisplay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="₹0"
+        android:textColor="@color/textPrimary"
+        android:textSize="48sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:letterSpacing="-0.02"
+        android:paddingHorizontal="24dp"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Hidden actual input -->
+    <EditText
+        android:id="@+id/etAmount"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:inputType="numberDecimal"
+        android:visibility="visible"
+        android:alpha="0"
+        android:focusableInTouchMode="true" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tap amount to type"
+        android:textColor="@color/textSecondary"
+        android:textSize="12sp"
+        android:gravity="center"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Note input -->
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Amount (₹)"
+        android:hint="Add a note (optional)"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="12dp">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etAmount"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="numberDecimal"
-            android:textSize="24sp"
-            android:imeOptions="actionNext" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Note -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Note (optional)"
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="12dp">
-
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:imeOptions="actionDone"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:textColor="@color/textPrimary" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Date picker chip -->
-    <com.google.android.material.chip.Chip
-        android:id="@+id/chipDate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="24dp"
-        android:text="Today"
-        style="@style/Widget.Material3.Chip.Assist"
-        app:chipIcon="@android:drawable/ic_menu_today" />
-
-    <!-- Save -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnSave"
+    <!-- Date chip -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="24dp"
-        android:text="Save Transaction"
-        android:textSize="15sp" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="20dp">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Today"
+            style="@style/Widget.Material3.Chip.Assist" />
+    </LinearLayout>
+
+    <!-- Save button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="32dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Save"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.02" />
+    </LinearLayout>
 
 </LinearLayout>

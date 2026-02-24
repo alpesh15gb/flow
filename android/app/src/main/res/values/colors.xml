@@ -1,28 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#2563EB</color>
+    <color name="ic_launcher_background">#0A84FF</color>
 
-    <!-- Base -->
-    <color name="background">#F5F7FA</color>
-    <color name="surface">#FFFFFF</color>
-    <color name="border">#E5E7EB</color>
-    <color name="textPrimary">#111827</color>
-    <color name="textMuted">#6B7280</color>
+    <!-- OLED dark base -->
+    <color name="background">#050505</color>
+    <color name="surface">#111111</color>
+    <color name="surface2">#1A1A1A</color>
+    <color name="border">#242424</color>
 
-    <!-- Semantic -->
-    <color name="green">#16A34A</color>
-    <color name="red">#DC2626</color>
-    <color name="blue">#2563EB</color>
-    <color name="yellow">#D97706</color>
+    <!-- Typography -->
+    <color name="textPrimary">#FFFFFF</color>
+    <color name="textSecondary">#8A8A8E</color>
+    <color name="textTertiary">#48484A</color>
 
-    <!-- Light tint backgrounds -->
-    <color name="type_sale_bg">#DCFCE7</color>
-    <color name="type_expense_bg">#FEE2E2</color>
-    <color name="type_purchase_bg">#DBEAFE</color>
+    <!-- Vivid accents -->
+    <color name="green">#00D562</color>
+    <color name="red">#FF3B30</color>
+    <color name="blue">#0A84FF</color>
+    <color name="yellow">#FFD60A</color>
 
-    <!-- Card accent strips -->
-    <color name="card_sale_accent">#16A34A</color>
-    <color name="card_expense_accent">#DC2626</color>
-    <color name="card_purchase_accent">#2563EB</color>
-    <color name="card_profit_accent">#D97706</color>
+    <!-- Tinted surfaces (10% alpha) -->
+    <color name="green_surface">#1A00D562</color>
+    <color name="red_surface">#1AFF3B30</color>
+    <color name="blue_surface">#1A0A84FF</color>
+    <color name="yellow_surface">#1AFFD60A</color>
+
+    <!-- Hero gradients (set programmatically) -->
+    <color name="hero_profit_start">#001F0D</color>
+    <color name="hero_profit_end">#003319</color>
+    <color name="hero_loss_start">#1F0000</color>
+    <color name="hero_loss_end">#330000</color>
+
+    <!-- Badge backgrounds -->
+    <color name="type_sale_bg">#1400D562</color>
+    <color name="type_expense_bg">#14FF3B30</color>
+    <color name="type_purchase_bg">#140A84FF</color>
 </resources>

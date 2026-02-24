@@ -1,13 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Flow" parent="Theme.Material3.Light.NoActionBar">
+    <style name="Theme.Flow" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/blue</item>
-        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorOnPrimary">@color/textPrimary</item>
         <item name="colorSurface">@color/surface</item>
         <item name="colorOnSurface">@color/textPrimary</item>
-        <item name="colorSurfaceVariant">@color/background</item>
+        <item name="colorOutline">@color/border</item>
+        <item name="colorSurfaceVariant">@color/surface2</item>
         <item name="android:windowBackground">@color/background</item>
-        <item name="android:statusBarColor">@color/surface</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">#00000000</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="bottomNavigationStyle">@style/FlowBottomNav</item>
+    </style>
+
+    <style name="FlowBottomNav" parent="Widget.Material3.BottomNavigationView">
+        <item name="itemRippleColor">@android:color/transparent</item>
+        <item name="itemTextAppearanceActive">@style/FlowNavText</item>
+        <item name="itemTextAppearanceInactive">@style/FlowNavText</item>
+        <item name="labelVisibilityMode">labeled</item>
+    </style>
+
+    <style name="FlowNavText" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">10sp</item>
+        <item name="android:letterSpacing">0.04</item>
     </style>
 </resources>

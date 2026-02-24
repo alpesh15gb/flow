@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="horizontal"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="3dp"
-    app:cardCornerRadius="10dp"
-    app:cardElevation="0dp"
-    app:strokeColor="@color/border"
-    app:strokeWidth="1dp"
-    android:foreground="?attr/selectableItemBackground">
+    android:background="@drawable/bg_tx_item"
+    android:clickable="true"
+    android:focusable="true">
 
+    <!-- Left type stripe -->
+    <View
+        android:id="@+id/vStripe"
+        android:layout_width="3dp"
+        android:layout_height="match_parent"
+        android:background="@color/green" />
+
+    <!-- Content -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,16 +24,17 @@
         android:padding="14dp"
         android:gravity="center_vertical">
 
-        <!-- Type badge circle -->
+        <!-- Icon circle -->
         <TextView
             android:id="@+id/tvTypeIcon"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:gravity="center"
             android:textSize="18sp"
-            android:background="@drawable/bg_icon_circle" />
+            android:background="@drawable/bg_icon_circle"
+            android:text="↑" />
 
-        <!-- Note + type label -->
+        <!-- Note + type -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -44,14 +50,15 @@
                 android:textSize="14sp"
                 android:textStyle="bold"
                 android:maxLines="1"
-                android:ellipsize="end" />
+                android:ellipsize="end"
+                android:letterSpacing="-0.01" />
 
             <TextView
                 android:id="@+id/tvType"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textColor="@color/textMuted"
+                android:layout_marginTop="3dp"
+                android:textColor="@color/textSecondary"
                 android:textSize="11sp" />
         </LinearLayout>
 
@@ -66,19 +73,18 @@
                 android:id="@+id/tvAmount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/textPrimary"
+                android:textColor="@color/green"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:fontFamily="sans-serif-medium" />
+                android:letterSpacing="-0.01" />
 
             <TextView
                 android:id="@+id/tvDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textColor="@color/textMuted"
+                android:layout_marginTop="3dp"
+                android:textColor="@color/textSecondary"
                 android:textSize="11sp" />
         </LinearLayout>
-
     </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+</LinearLayout>
