@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import androidx.work.*
 import `in`.cartunez.flow.R
 import `in`.cartunez.flow.databinding.ActivityMainBinding
@@ -25,33 +26,32 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if (savedInstanceState == null) {
-            showHome()
-        }
-
+        // Nav listener is the single place that swaps fragments
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_home    -> { showHome(); true }
-                R.id.nav_history -> { showHistory(); true }
+                R.id.nav_home    -> { loadFragment(HomeFragment());    true }
+                R.id.nav_history -> { loadFragment(HistoryFragment()); true }
                 else             -> false
             }
+        }
+
+        if (savedInstanceState == null) {
+            // Triggers the listener above — no separate loadFragment call needed
+            binding.bottomNav.selectedItemId = R.id.nav_home
         }
 
         requestSmsPermission()
         scheduleSyncWorker()
     }
 
-    fun showHome() {
-        binding.bottomNav.selectedItemId = R.id.nav_home
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, HomeFragment())
-            .commit()
-    }
-
+    /** Called by HomeFragment's "See all →" link */
     fun showHistory() {
         binding.bottomNav.selectedItemId = R.id.nav_history
+    }
+
+    private fun loadFragment(fragment: Fragment) {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, HistoryFragment())
+            .replace(R.id.fragmentContainer, fragment)
             .commit()
     }
 
