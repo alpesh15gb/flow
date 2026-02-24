@@ -184,6 +184,7 @@ class SlipReviewSheet : BottomSheetDialogFragment() {
             .filter { it >= 1.0 }
             .sortedDescending()
             .distinct()
+            .toList()
     }
 
     private fun updateDateChip() {
