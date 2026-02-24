@@ -6,6 +6,7 @@ import `in`.cartunez.flow.network.ApiService
 import `in`.cartunez.flow.network.AuthRequest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class MainViewModel(
     private val repo: TransactionRepository,
@@ -30,9 +31,13 @@ class MainViewModel(
     private val _pendingTx = MutableLiveData<PendingTransaction?>()
     val pendingTx: LiveData<PendingTransaction?> = _pendingTx
 
+    private val _weeklyData = MutableLiveData<List<Pair<String, Double>>>()
+    val weeklyData: LiveData<List<Pair<String, Double>>> = _weeklyData
+
     init {
         checkAuth()
         refreshSummary()
+        refreshWeekly()
     }
 
     private fun checkAuth() = viewModelScope.launch {
@@ -65,14 +70,49 @@ class MainViewModel(
         }
     }
 
+    fun refreshWeekly() = viewModelScope.launch {
+        val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        val dayFmt = DateTimeFormatter.ofPattern("EEE")
+        val today = LocalDate.now()
+
+        // Build a map date→net for the last 7 days
+        val txs = repo.getLastNDays(7)
+        val netByDate = mutableMapOf<String, Double>()
+        for (tx in txs) {
+            val net = when (tx.type) {
+                "sale"     ->  tx.amount
+                "expense"  -> -tx.amount
+                "purchase" -> -tx.amount
+                else       ->  0.0
+            }
+            netByDate[tx.date] = (netByDate[tx.date] ?: 0.0) + net
+        }
+
+        val result = (6 downTo 0).map { daysAgo ->
+            val d = today.minusDays(daysAgo.toLong())
+            val label = d.format(dayFmt)
+            val net = netByDate[d.format(fmt)] ?: 0.0
+            label to net
+        }
+        _weeklyData.value = result
+    }
+
     fun addTransaction(tx: `in`.cartunez.flow.data.Transaction) = viewModelScope.launch {
         repo.add(tx)
         refreshSummary()
+        refreshWeekly()
+    }
+
+    fun updateTransaction(tx: `in`.cartunez.flow.data.Transaction) = viewModelScope.launch {
+        repo.update(tx)
+        refreshSummary()
+        refreshWeekly()
     }
 
     fun deleteTransaction(id: String) = viewModelScope.launch {
         repo.delete(id)
         refreshSummary()
+        refreshWeekly()
     }
 
     fun suggestTransaction(pending: PendingTransaction) {
@@ -88,6 +128,7 @@ class MainViewModel(
         )
         _pendingTx.value = null
         refreshSummary()
+        refreshWeekly()
     }
 
     fun dismissPending() { _pendingTx.value = null }
@@ -96,6 +137,7 @@ class MainViewModel(
         _syncing.value = true
         repo.sync()
         refreshSummary()
+        refreshWeekly()
         _syncing.value = false
     }
 }

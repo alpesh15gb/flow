@@ -5,11 +5,16 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Color
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AnimationUtils
 import android.view.animation.DecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -17,6 +22,11 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import `in`.cartunez.flow.FlowApp
 import `in`.cartunez.flow.R
 import `in`.cartunez.flow.data.Summary
@@ -62,8 +72,8 @@ class HomeFragment : Fragment() {
         setupRecyclerView()
         setupTabs()
         setupButtons()
+        setupChart()
         observeViewModel()
-        // Fade in
         binding.root.alpha = 0f
         binding.root.animate().alpha(1f).setDuration(250).start()
     }
@@ -93,10 +103,12 @@ class HomeFragment : Fragment() {
 
     private fun setupRecyclerView() {
         recentAdapter = TransactionAdapter()
+        recentAdapter.onLongClick = { tx -> showEditDialog(tx) }
         binding.rvRecent.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = recentAdapter
             itemAnimator = null
+            layoutAnimation = AnimationUtils.loadLayoutAnimation(requireContext(), R.anim.layout_slide_in)
         }
     }
 
@@ -126,14 +138,61 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupButtons() {
-        binding.btnAddSale.setOnClickListener     { showAddDialog("sale") }
-        binding.btnAddExpense.setOnClickListener  { showAddDialog("expense") }
+        binding.btnAddSale.addPressAnim()
+        binding.btnAddSale.setOnClickListener { showAddDialog("sale") }
+
+        binding.btnAddExpense.addPressAnim()
+        binding.btnAddExpense.setOnClickListener { showAddDialog("expense") }
+
+        binding.btnAddPurchase.addPressAnim()
         binding.btnAddPurchase.setOnClickListener { showAddDialog("purchase") }
+
         binding.btnSync.setOnClickListener {
             binding.btnSync.animate().rotation(binding.btnSync.rotation + 360f).setDuration(500).start()
             viewModel.sync()
         }
         binding.tvSeeAll.setOnClickListener { (requireActivity() as MainActivity).showHistory() }
+    }
+
+    private fun View.addPressAnim() {
+        setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    v.animate().scaleX(0.94f).scaleY(0.94f).setDuration(80).start()
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(150)
+                        .setInterpolator(OvershootInterpolator(3f)).start()
+                    if (event.action == MotionEvent.ACTION_UP) {
+                        v.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                    }
+                }
+            }
+            false
+        }
+    }
+
+    private fun setupChart() {
+        binding.chartWeekly.apply {
+            description.isEnabled = false
+            legend.isEnabled = false
+            setTouchEnabled(false)
+            setScaleEnabled(false)
+            setDrawValueAboveBar(false)
+            setDrawBarShadow(false)
+            setDrawGridBackground(false)
+            axisLeft.isEnabled = false
+            axisRight.isEnabled = false
+            xAxis.apply {
+                position = XAxis.XAxisPosition.BOTTOM
+                setDrawGridLines(false)
+                setDrawAxisLine(false)
+                textColor = ContextCompat.getColor(requireContext(), R.color.textSecondary)
+                textSize = 10f
+                granularity = 1f
+            }
+            setExtraOffsets(0f, 0f, 0f, 4f)
+        }
     }
 
     private fun observeViewModel() {
@@ -149,6 +208,7 @@ class HomeFragment : Fragment() {
 
         viewModel.recentTransactions.observe(viewLifecycleOwner) { list ->
             recentAdapter.submitList(list)
+            binding.rvRecent.scheduleLayoutAnimation()
             binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
 
@@ -168,23 +228,48 @@ class HomeFragment : Fragment() {
                 .setCancelable(false)
                 .show()
         }
+
+        viewModel.weeklyData.observe(viewLifecycleOwner) { data -> bindChart(data) }
     }
 
     private fun bindSummary(s: Summary) {
-        // Update hero gradient
-        val heroDrawable = if (s.profit >= 0) R.drawable.gradient_hero_profit else R.drawable.gradient_hero_loss
+        val heroDrawable = when {
+            s.profit > 0  -> R.drawable.gradient_hero_profit
+            s.profit < 0  -> R.drawable.gradient_hero_loss
+            else          -> R.drawable.gradient_hero_neutral
+        }
         binding.heroCard.background = ContextCompat.getDrawable(requireContext(), heroDrawable)
 
-        // Animate big profit number
         animateAmount(binding.tvHeroAmount, s.profit)
         animateAmount(binding.tvHeroSales, s.sales)
         animateAmount(binding.tvHeroExpenses, s.expenses)
         animateAmount(binding.tvHeroPurchases, s.purchases)
 
-        // Profit color
         binding.tvHeroAmount.setTextColor(
             ContextCompat.getColor(requireContext(), if (s.profit >= 0) R.color.green else R.color.red)
         )
+    }
+
+    private fun bindChart(data: List<Pair<String, Double>>) {
+        if (data.isEmpty()) return
+        val green = ContextCompat.getColor(requireContext(), R.color.green)
+        val red   = ContextCompat.getColor(requireContext(), R.color.red)
+
+        val entries = data.mapIndexed { i, (_, net) -> BarEntry(i.toFloat(), net.toFloat()) }
+        val colors  = data.map { (_, net) -> if (net >= 0) green else red }
+
+        val dataSet = BarDataSet(entries, "").apply {
+            setColors(colors)
+            setDrawValues(false)
+        }
+        val barData = BarData(dataSet).apply { barWidth = 0.6f }
+
+        binding.chartWeekly.apply {
+            xAxis.valueFormatter = IndexAxisValueFormatter(data.map { it.first })
+            this.data = barData
+            animateY(400)
+            invalidate()
+        }
     }
 
     private fun animateAmount(tv: TextView, target: Double) {
@@ -207,6 +292,14 @@ class HomeFragment : Fragment() {
             )
         }
         dialog.show(parentFragmentManager, "add_tx")
+    }
+
+    private fun showEditDialog(tx: Transaction) {
+        val dialog = AddTransactionDialog.newInstanceEdit(tx)
+        dialog.onSave = { amount, note, date ->
+            viewModel.updateTransaction(tx.copy(amount = amount, note = note.ifBlank { null }, date = date))
+        }
+        dialog.show(parentFragmentManager, "edit_tx")
     }
 
     override fun onDestroyView() {

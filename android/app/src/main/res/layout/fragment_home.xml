@@ -117,7 +117,8 @@
                 android:orientation="vertical"
                 android:padding="24dp"
                 android:background="@drawable/gradient_hero_profit"
-                android:layout_marginBottom="16dp">
+                android:elevation="6dp"
+                android:layout_marginBottom="12dp">
 
                 <!-- Header -->
                 <LinearLayout
@@ -199,6 +200,22 @@
 
                 </LinearLayout>
             </LinearLayout>
+
+            <!-- Weekly chart -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="LAST 7 DAYS"
+                android:textColor="@color/textSecondary"
+                android:textSize="10sp"
+                android:letterSpacing="0.1"
+                android:layout_marginBottom="8dp" />
+
+            <com.github.mikephil.charting.charts.BarChart
+                android:id="@+id/chartWeekly"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginBottom="20dp" />
 
             <!-- Quick Add -->
             <TextView

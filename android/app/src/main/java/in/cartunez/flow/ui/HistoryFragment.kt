@@ -48,11 +48,20 @@ class HistoryFragment : Fragment() {
 
     private fun setupRecyclerView() {
         historyAdapter = HistoryAdapter()
+        historyAdapter.onLongClick = { tx -> showEditDialog(tx) }
         binding.rvHistory.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = historyAdapter
         }
         attachSwipeToDelete()
+    }
+
+    private fun showEditDialog(tx: Transaction) {
+        val dialog = AddTransactionDialog.newInstanceEdit(tx)
+        dialog.onSave = { amount, note, date ->
+            viewModel.updateTransaction(tx.copy(amount = amount, note = note.ifBlank { null }, date = date))
+        }
+        dialog.show(parentFragmentManager, "edit_tx")
     }
 
     private fun attachSwipeToDelete() {

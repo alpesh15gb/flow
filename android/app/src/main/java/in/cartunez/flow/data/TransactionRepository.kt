@@ -18,7 +18,14 @@ class TransactionRepository(
 
     suspend fun add(tx: Transaction): Boolean = dao.insert(tx) != -1L
 
+    suspend fun update(tx: Transaction) = dao.update(tx)
+
     suspend fun delete(id: String) = dao.deleteById(id)
+
+    suspend fun getLastNDays(n: Int): List<Transaction> {
+        val from = LocalDate.now().minusDays((n - 1).toLong()).format(fmt)
+        return dao.getFrom(from)
+    }
 
     suspend fun dailySummary(date: LocalDate): Summary {
         val sums = dao.dailySummary(date.format(fmt))

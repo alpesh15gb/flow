@@ -36,6 +36,9 @@ interface TransactionDao {
     @Query("SELECT type, SUM(amount) as total FROM transactions WHERE date LIKE :monthPrefix || '%' GROUP BY type")
     suspend fun monthlySummary(monthPrefix: String): List<TypeSum>
 
+    @Query("SELECT * FROM transactions WHERE date >= :from ORDER BY date ASC, createdAt ASC")
+    suspend fun getFrom(from: String): List<Transaction>
+
     @Query("SELECT * FROM transactions WHERE synced = 0")
     suspend fun getUnsynced(): List<Transaction>
 

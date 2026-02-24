@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.datepicker.MaterialDatePicker
 import `in`.cartunez.flow.R
+import `in`.cartunez.flow.data.Transaction
 import `in`.cartunez.flow.databinding.DialogAddTransactionBinding
 import java.time.Instant
 import java.time.LocalDate
@@ -29,9 +30,24 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
     private var selectedType = "sale"
 
     companion object {
-        private const val ARG_TYPE = "type"
+        private const val ARG_TYPE   = "type"
+        private const val ARG_ID     = "id"
+        private const val ARG_AMOUNT = "amount"
+        private const val ARG_NOTE   = "note"
+        private const val ARG_DATE   = "date"
+
         fun newInstance(type: String) = AddTransactionDialog().apply {
             arguments = Bundle().apply { putString(ARG_TYPE, type) }
+        }
+
+        fun newInstanceEdit(tx: Transaction) = AddTransactionDialog().apply {
+            arguments = Bundle().apply {
+                putString(ARG_TYPE,   tx.type)
+                putString(ARG_ID,     tx.id)
+                putDouble(ARG_AMOUNT, tx.amount)
+                putString(ARG_NOTE,   tx.note ?: "")
+                putString(ARG_DATE,   tx.date)
+            }
         }
     }
 
@@ -41,8 +57,22 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val initType = arguments?.getString(ARG_TYPE) ?: "sale"
+        val args     = arguments
+        val initType = args?.getString(ARG_TYPE) ?: "sale"
+        val isEdit   = args?.getString(ARG_ID) != null
+
         selectType(initType)
+
+        // Pre-fill for edit mode
+        if (isEdit) {
+            val amount = args!!.getDouble(ARG_AMOUNT, 0.0)
+            val note   = args.getString(ARG_NOTE, "")
+            val date   = args.getString(ARG_DATE, LocalDate.now().toString())
+            binding.etAmount.setText(if (amount == 0.0) "" else amount.toBigDecimal().stripTrailingZeros().toPlainString())
+            binding.etNote.setText(note)
+            runCatching { selectedDate = LocalDate.parse(date) }
+        }
+
         updateDateChip()
 
         // Type selector
@@ -50,7 +80,7 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
         binding.btnTypeExpense.setOnClickListener  { selectType("expense") }
         binding.btnTypePurchase.setOnClickListener { selectType("purchase") }
 
-        // Show amount display linked to hidden edittext
+        // Amount display
         binding.tvAmountDisplay.setOnClickListener { binding.etAmount.requestFocus() }
         binding.etAmount.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -60,6 +90,12 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
                 binding.tvAmountDisplay.text = if (v == 0.0) "₹0" else "₹${String.format("%,.0f", v)}"
             }
         })
+
+        // Trigger display update if pre-filled
+        if (isEdit) binding.etAmount.text?.let { binding.etAmount.addTextChangedListener(null) }.also {
+            val v = binding.etAmount.text.toString().toDoubleOrNull() ?: 0.0
+            binding.tvAmountDisplay.text = if (v == 0.0) "₹0" else "₹${String.format("%,.0f", v)}"
+        }
 
         // Date
         binding.chipDate.setOnClickListener { showDatePicker() }
@@ -75,7 +111,6 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
             dismiss()
         }
 
-        // Auto-open keyboard on amount
         binding.etAmount.postDelayed({ binding.etAmount.requestFocus() }, 200)
     }
 
@@ -89,7 +124,6 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
         binding.btnTypeExpense.background  = ContextCompat.getDrawable(requireContext(), expense)
         binding.btnTypePurchase.background = ContextCompat.getDrawable(requireContext(), purchase)
 
-        // Update text colors
         val greenOrMuted = if (type == "sale")     R.color.green     else R.color.textSecondary
         val redOrMuted   = if (type == "expense")  R.color.red       else R.color.textSecondary
         val blueOrMuted  = if (type == "purchase") R.color.blue      else R.color.textSecondary
@@ -104,7 +138,6 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
             (child as? android.widget.TextView)?.setTextColor(ContextCompat.getColor(requireContext(), blueOrMuted))
         }
 
-        // Update save button color
         val btnColor = when (type) {
             "expense"  -> ContextCompat.getColor(requireContext(), R.color.red)
             "purchase" -> ContextCompat.getColor(requireContext(), R.color.blue)

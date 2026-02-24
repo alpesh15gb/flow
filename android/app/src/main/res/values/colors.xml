@@ -4,13 +4,13 @@
 
     <!-- OLED dark base -->
     <color name="background">#050505</color>
-    <color name="surface">#111111</color>
-    <color name="surface2">#1A1A1A</color>
-    <color name="border">#242424</color>
+    <color name="surface">#111315</color>
+    <color name="surface2">#1A1E22</color>
+    <color name="border">#1F2226</color>
 
     <!-- Typography -->
     <color name="textPrimary">#FFFFFF</color>
-    <color name="textSecondary">#8A8A8E</color>
+    <color name="textSecondary">#9AA0A6</color>
     <color name="textTertiary">#48484A</color>
 
     <!-- Vivid accents -->
@@ -28,8 +28,10 @@
     <!-- Hero gradients (set programmatically) -->
     <color name="hero_profit_start">#001F0D</color>
     <color name="hero_profit_end">#003319</color>
-    <color name="hero_loss_start">#1F0000</color>
-    <color name="hero_loss_end">#330000</color>
+    <color name="hero_loss_start">#2A0D0D</color>
+    <color name="hero_loss_end">#3D1515</color>
+    <color name="hero_neutral_start">#141618</color>
+    <color name="hero_neutral_end">#1C2025</color>
 
     <!-- Badge backgrounds -->
     <color name="type_sale_bg">#1400D562</color>
