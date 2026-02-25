@@ -59,6 +59,21 @@
             android:focusable="true" />
     </LinearLayout>
 
+    <!-- Sync status line -->
+    <TextView
+        android:id="@+id/tvSyncStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="6dp"
+        android:text=""
+        android:textColor="@color/textSecondary"
+        android:textSize="10sp"
+        android:gravity="end"
+        android:visibility="gone"
+        android:background="@color/background" />
+
     <!-- Range toggle -->
     <LinearLayout
         android:layout_width="match_parent"

@@ -6,6 +6,7 @@ import `in`.cartunez.flow.network.ApiService
 import `in`.cartunez.flow.network.AuthRequest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 class MainViewModel(
@@ -25,6 +26,9 @@ class MainViewModel(
 
     private val _syncing = MutableLiveData(false)
     val syncing: LiveData<Boolean> = _syncing
+
+    private val _syncStatus = MutableLiveData<String?>()
+    val syncStatus: LiveData<String?> = _syncStatus
 
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
@@ -134,11 +138,23 @@ private val _weeklyData = MutableLiveData<List<Pair<String, Double>>>()
 
     fun sync() = viewModelScope.launch {
         _syncing.value = true
-        slipsRepo.sync()
-        repo.sync()
-        refreshSummary()
-        refreshWeekly()
-        _syncing.value = false
+        try {
+            slipsRepo.sync()
+            val result = repo.sync()
+            refreshSummary()
+            refreshWeekly()
+            _syncStatus.value = when (result) {
+                is SyncResult.NoAuth -> "Not connected — tap to retry"
+                is SyncResult.Ok -> {
+                    val t = LocalTime.now().format(DateTimeFormatter.ofPattern("h:mm a"))
+                    "Synced $t"
+                }
+            }
+        } catch (e: Exception) {
+            _syncStatus.value = "Sync failed — check connection"
+        } finally {
+            _syncing.value = false
+        }
     }
 }
 

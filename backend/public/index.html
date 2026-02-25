@@ -8,68 +8,72 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:       #0f1117;
-      --surface:  #1a1d27;
-      --border:   #2a2d3a;
-      --text:     #e8eaf0;
-      --muted:    #7b7f93;
-      --green:    #22c55e;
-      --red:      #ef4444;
-      --blue:     #3b82f6;
-      --yellow:   #f59e0b;
-      --radius:   12px;
+      --bg:      #0f1117;
+      --surface: #1a1d27;
+      --border:  #2a2d3a;
+      --text:    #e8eaf0;
+      --muted:   #7b7f93;
+      --green:   #22c55e;
+      --red:     #ef4444;
+      --blue:    #3b82f6;
+      --yellow:  #f59e0b;
+      --radius:  12px;
     }
     body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
 
-    /* Login */
+    /* ── Login ── */
     #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; }
     .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 360px; }
     .login-box h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
-    .login-box p { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
-    .login-box .hint { color: var(--muted); font-size: 0.75rem; margin-bottom: 1rem; margin-top: -0.25rem; }
-    .login-box input { width: 100%; padding: 0.75rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.9rem; margin-bottom: 0.75rem; }
-    .login-box input:focus { outline: none; border-color: var(--blue); }
-    .btn { width: 100%; padding: 0.75rem; background: var(--blue); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
-    .btn:hover { opacity: 0.85; }
+    .login-box p  { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+    .login-hint { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); border-radius: 8px; padding: 0.6rem 0.75rem; margin-bottom: 1rem; font-size: 0.78rem; color: var(--blue); line-height: 1.5; }
+    input { width: 100%; padding: 0.75rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.9rem; margin-bottom: 0.75rem; outline: none; }
+    input:focus { border-color: var(--blue); }
+    .btn-primary { width: 100%; padding: 0.75rem; background: var(--blue); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+    .btn-primary:hover { opacity: 0.85; }
     .err { color: var(--red); font-size: 0.8rem; margin-top: 0.5rem; display: none; }
 
-    /* App */
+    /* ── App shell ── */
     #app { display: none; }
-    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
-    .topbar h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; }
-    .topbar-right { display: flex; align-items: center; gap: 1rem; }
-    select { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
-    .logout-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: color 0.2s; }
-    .logout-btn:hover { color: var(--text); }
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; gap: 0.75rem; }
+    .topbar h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; flex-shrink: 0; }
+    .topbar-mid { flex: 1; display: flex; align-items: center; gap: 0.5rem; min-width: 0; }
+    .device-badge { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.6rem; font-size: 0.72rem; color: var(--muted); cursor: pointer; white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+    .device-badge:hover { color: var(--text); border-color: var(--muted); }
+    .updated-label { font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+    .topbar-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+    .icon-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0.6rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: color 0.2s; }
+    .icon-btn:hover { color: var(--text); }
+    .icon-btn.spinning { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* View nav */
+    /* ── View nav ── */
     .view-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); }
     .view-tab { padding: 0.75rem 1.5rem; font-size: 0.85rem; font-weight: 600; color: var(--muted); border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
     .view-tab.active { color: var(--text); border-bottom-color: var(--blue); }
 
     .content { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 
-    /* Summary cards */
+    /* ── Cards ── */
     .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+    .card.error { border-color: rgba(239,68,68,0.3); }
     .card-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.5rem; }
     .card-value { font-size: 1.75rem; font-weight: 700; font-variant-numeric: tabular-nums; }
-    .card-value.green  { color: var(--green); }
-    .card-value.red    { color: var(--red); }
-    .card-value.blue   { color: var(--blue); }
-    .card-value.yellow { color: var(--yellow); }
+    .green { color: var(--green); } .red { color: var(--red); } .blue { color: var(--blue); } .yellow { color: var(--yellow); }
 
-    /* Charts */
+    /* ── Charts ── */
     .charts { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
     @media (max-width: 680px) { .charts { grid-template-columns: 1fr; } }
     .chart-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
     .chart-box h2 { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
     .chart-wrap { position: relative; height: 200px; }
 
-    /* Tables */
+    /* ── Tables ── */
     .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
-    .section-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
-    .section-header h2 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .section-head { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+    .section-head h2 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    select { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
     th { padding: 0.6rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
@@ -81,68 +85,74 @@
     .badge-sale     { background: rgba(34,197,94,0.15);  color: var(--green); }
     .badge-expense  { background: rgba(239,68,68,0.15);  color: var(--red); }
     .badge-purchase { background: rgba(59,130,246,0.15); color: var(--blue); }
-    .badge-paid     { background: rgba(34,197,94,0.15);  color: var(--green); }
     .badge-due      { background: rgba(239,68,68,0.15);  color: var(--red); }
+    .badge-paid     { background: rgba(34,197,94,0.15);  color: var(--green); }
     .amount-cell { font-variant-numeric: tabular-nums; font-weight: 600; }
     .note-cell { color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
     .empty-row td { text-align: center; color: var(--muted); padding: 2rem; }
 
-    /* Loading */
+    /* ── Loading / error ── */
     .loading { display: flex; align-items: center; justify-content: center; gap: 0.5rem; color: var(--muted); font-size: 0.875rem; padding: 1rem; }
-    .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
 
-    /* Range tabs */
+    /* ── Range tabs ── */
     .tabs { display: flex; gap: 0.25rem; background: var(--bg); border-radius: 8px; padding: 3px; margin-bottom: 1.5rem; width: fit-content; }
     .tab { padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--muted); transition: all 0.2s; }
     .tab.active { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
 
-    /* Modal */
+    /* ── Modal ── */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
     .modal-overlay.open { display: flex; }
     .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 640px; max-height: 85vh; display: flex; flex-direction: column; }
     .modal-head { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
     .modal-head h3 { font-size: 1rem; font-weight: 700; }
-    .modal-close { background: transparent; border: none; color: var(--muted); font-size: 1.25rem; cursor: pointer; line-height: 1; }
-    .modal-body { overflow-y: auto; padding: 0; flex: 1; }
+    .modal-close { background: transparent; border: none; color: var(--muted); font-size: 1.25rem; cursor: pointer; }
+    .modal-body { overflow-y: auto; flex: 1; }
+
+    /* ── Toast ── */
+    #toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 1.2rem; font-size: 0.85rem; color: var(--text); opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 200; white-space: nowrap; }
+    #toast.show { opacity: 1; }
   </style>
 </head>
 <body>
 
-<!-- Login -->
 <div id="login-screen">
   <div class="login-box">
     <h1>Flow</h1>
-    <p>Cashflow dashboard — enter your device ID to continue</p>
-    <input id="device-id" type="text" placeholder="Device ID (from Android app)" autocomplete="off">
-    <p class="hint">Tip: Long-press the sync button in the Android app to copy your Device ID.</p>
-    <input id="display-name" type="text" placeholder="Your name (optional)" autocomplete="off">
-    <button class="btn" onclick="login()">Sign In</button>
+    <p>Cashflow dashboard — sign in with your Device ID</p>
+    <div class="login-hint">
+      📱 Find your Device ID: Open the Android app → Long-press the <strong>↻ Sync</strong> button → tap <strong>Copy</strong>
+    </div>
+    <input id="inp-device" type="text" placeholder="Device ID" autocomplete="off">
+    <input id="inp-name"   type="text" placeholder="Your name (optional)" autocomplete="off">
+    <button class="btn-primary" onclick="login()">Sign In</button>
     <p class="err" id="login-err"></p>
   </div>
 </div>
 
-<!-- App -->
 <div id="app">
   <div class="topbar">
     <h1>Flow</h1>
+    <div class="topbar-mid">
+      <span class="device-badge" id="device-badge" title="Click to copy Device ID" onclick="copyDevice()"></span>
+      <span class="updated-label" id="updated-label"></span>
+    </div>
     <div class="topbar-right">
-      <span id="user-label" style="font-size:0.8rem;color:var(--muted)"></span>
-      <button class="logout-btn" onclick="logout()">Logout</button>
+      <button class="icon-btn" id="refresh-btn" onclick="manualRefresh()" title="Refresh">↻</button>
+      <button class="icon-btn" onclick="logout()">Logout</button>
     </div>
   </div>
 
-  <!-- View tabs -->
   <div class="view-nav">
     <button class="view-tab active" onclick="switchView('cashflow', this)">Cashflow</button>
-    <button class="view-tab" onclick="switchView('slips', this)">Slip Tracker</button>
+    <button class="view-tab"        onclick="switchView('slips', this)">Slip Tracker</button>
   </div>
 
   <!-- Cashflow view -->
   <div id="view-cashflow" class="content">
     <div class="tabs">
       <button class="tab active" onclick="setRange('daily', this)">Today</button>
-      <button class="tab" onclick="setRange('monthly', this)">This Month</button>
+      <button class="tab"        onclick="setRange('monthly', this)">This Month</button>
     </div>
     <div class="cards">
       <div class="card"><div class="card-label">Sales</div><div class="card-value green" id="c-sales">—</div></div>
@@ -151,17 +161,11 @@
       <div class="card"><div class="card-label">Profit</div><div class="card-value" id="c-profit">—</div></div>
     </div>
     <div class="charts">
-      <div class="chart-box">
-        <h2>Monthly Overview</h2>
-        <div class="chart-wrap"><canvas id="bar-chart"></canvas></div>
-      </div>
-      <div class="chart-box">
-        <h2>Type Breakdown</h2>
-        <div class="chart-wrap"><canvas id="pie-chart"></canvas></div>
-      </div>
+      <div class="chart-box"><h2>Monthly Overview</h2><div class="chart-wrap"><canvas id="bar-chart"></canvas></div></div>
+      <div class="chart-box"><h2>Type Breakdown</h2><div class="chart-wrap"><canvas id="pie-chart"></canvas></div></div>
     </div>
     <div class="section">
-      <div class="section-header">
+      <div class="section-head">
         <h2>Transactions</h2>
         <select id="type-filter" onchange="loadTransactions()">
           <option value="all">All types</option>
@@ -173,9 +177,7 @@
       <div class="table-wrap">
         <table>
           <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Note</th><th>Device</th></tr></thead>
-          <tbody id="tx-body">
-            <tr><td colspan="5" class="loading"><span class="spinner"></span>Loading…</td></tr>
-          </tbody>
+          <tbody id="tx-body"><tr><td colspan="5" class="loading"><span class="spinner"></span>Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -183,23 +185,21 @@
 
   <!-- Slip Tracker view -->
   <div id="view-slips" class="content" style="display:none">
-    <div class="cards" id="slips-summary-cards">
-      <div class="card"><div class="card-label">Total Outstanding</div><div class="card-value red" id="s-outstanding">—</div></div>
-      <div class="card"><div class="card-label">Total Billed</div><div class="card-value blue" id="s-billed">—</div></div>
+    <div class="cards">
+      <div class="card"><div class="card-label">Total Outstanding</div><div class="card-value red"  id="s-outstanding">—</div></div>
+      <div class="card"><div class="card-label">Total Billed</div><div class="card-value blue"  id="s-billed">—</div></div>
       <div class="card"><div class="card-label">Total Collected</div><div class="card-value green" id="s-collected">—</div></div>
-      <div class="card"><div class="card-label">Parties</div><div class="card-value" id="s-party-count">—</div></div>
+      <div class="card"><div class="card-label">Parties</div><div class="card-value" id="s-count">—</div></div>
     </div>
     <div class="section">
-      <div class="section-header">
+      <div class="section-head">
         <h2>Party Balances</h2>
         <span style="font-size:0.75rem;color:var(--muted)">Click a row for monthly report</span>
       </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Party</th><th>Total Billed</th><th>Collected</th><th>Outstanding</th><th>Slips</th><th>Status</th></tr></thead>
-          <tbody id="slips-body">
-            <tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr>
-          </tbody>
+          <tbody id="slips-body"><tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -207,7 +207,7 @@
 </div>
 
 <!-- Party report modal -->
-<div class="modal-overlay" id="party-modal" onclick="if(event.target===this) closeModal()">
+<div class="modal-overlay" id="party-modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <div class="modal-head">
       <h3 id="modal-party-name"></h3>
@@ -217,67 +217,112 @@
       <div class="table-wrap">
         <table>
           <thead><tr><th>Month</th><th>Slips</th><th>Billed</th><th>Outstanding</th></tr></thead>
-          <tbody id="modal-report-body">
-            <tr><td colspan="4" class="loading"><span class="spinner"></span>Loading…</td></tr>
-          </tbody>
+          <tbody id="modal-body"><tr><td colspan="4" class="loading"><span class="spinner"></span>Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 </div>
 
+<div id="toast"></div>
+
 <script>
 const API = '/api';
 let token = localStorage.getItem('flow_token');
+let deviceId = localStorage.getItem('flow_device') || '';
 let currentRange = 'daily';
 let currentView  = 'cashflow';
 let barChart, pieChart;
+let lastUpdated = null;
+
+// ── Utilities ───────────────────────────────────────────────────────────────
 
 function fmt(n) {
   return '₹' + parseFloat(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
-function shortDevice(d) { return d ? d.slice(0, 8) + '…' : '—'; }
+
+function localDate() {
+  // Returns YYYY-MM-DD in the browser's local timezone (fixes UTC vs IST issue)
+  return new Date().toLocaleDateString('en-CA');
+}
+
 function fmtMonth(m) {
   if (!m) return m;
   const [y, mo] = m.split('-');
   return new Date(y, mo - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
 }
 
-async function apiFetch(path, opts = {}) {
-  const res = await fetch(API + path, {
-    ...opts,
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(opts.headers || {}) }
-  });
-  if (res.status === 401) { logout(); return null; }
-  return res.json();
+function timeAgo(date) {
+  if (!date) return '';
+  const diff = Math.floor((Date.now() - date) / 1000);
+  if (diff < 10)  return 'just now';
+  if (diff < 60)  return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  return `${Math.floor(diff/3600)}h ago`;
 }
 
-async function login() {
-  const deviceId = document.getElementById('device-id').value.trim();
-  const name = document.getElementById('display-name').value.trim();
-  const err = document.getElementById('login-err');
-  err.style.display = 'none';
-  if (!deviceId) { err.textContent = 'Device ID is required'; err.style.display = 'block'; return; }
+function showToast(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function copyDevice() {
+  if (!deviceId) return;
+  navigator.clipboard.writeText(deviceId).then(() => showToast('Device ID copied!'));
+}
+
+// ── API ─────────────────────────────────────────────────────────────────────
+
+async function apiFetch(path, opts = {}, retries = 2) {
   try {
-    const res = await fetch(`${API}/auth/simple`, {
+    const res = await fetch(API + path, {
+      ...opts,
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, ...(opts.headers || {}) }
+    });
+    if (res.status === 401) { logout(); return null; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    if (retries > 0) {
+      await new Promise(r => setTimeout(r, 3000));
+      return apiFetch(path, opts, retries - 1);
+    }
+    console.error('API error', path, e.message);
+    return null;
+  }
+}
+
+// ── Auth ────────────────────────────────────────────────────────────────────
+
+async function login() {
+  const id   = document.getElementById('inp-device').value.trim();
+  const name = document.getElementById('inp-name').value.trim();
+  const err  = document.getElementById('login-err');
+  err.style.display = 'none';
+  if (!id) { err.textContent = 'Device ID is required'; err.style.display = 'block'; return; }
+  try {
+    const res  = await fetch(`${API}/auth/simple`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ device_id: deviceId, name: name || undefined })
+      body: JSON.stringify({ device_id: id, name: name || undefined })
     });
     const data = await res.json();
     if (!res.ok) { err.textContent = data.error || 'Login failed'; err.style.display = 'block'; return; }
     token = data.token;
+    deviceId = id;
     localStorage.setItem('flow_token', token);
-    localStorage.setItem('flow_device', deviceId);
-    showApp(name || deviceId);
+    localStorage.setItem('flow_device', id);
+    showApp(name || id);
   } catch (e) {
-    err.textContent = 'Connection failed'; err.style.display = 'block';
+    err.textContent = 'Connection failed — check your internet'; err.style.display = 'block';
   }
 }
 
 function logout() {
   localStorage.removeItem('flow_token');
-  token = null;
+  token = null; deviceId = '';
   document.getElementById('app').style.display = 'none';
   document.getElementById('login-screen').style.display = 'flex';
 }
@@ -285,9 +330,11 @@ function logout() {
 function showApp(label) {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
-  document.getElementById('user-label').textContent = label || '';
+  document.getElementById('device-badge').textContent = '📱 ' + (deviceId.length > 12 ? deviceId.slice(0, 12) + '…' : deviceId);
   loadAll();
 }
+
+// ── Navigation ───────────────────────────────────────────────────────────────
 
 function switchView(view, btn) {
   currentView = view;
@@ -305,23 +352,37 @@ function setRange(r, btn) {
   loadSummary();
 }
 
+// ── Cashflow ─────────────────────────────────────────────────────────────────
+
 async function loadSummary() {
-  const data = await apiFetch(`/dashboard/summary?range=${currentRange}`);
-  if (!data) return;
-  document.getElementById('c-sales').textContent = fmt(data.sales);
-  document.getElementById('c-expenses').textContent = fmt(data.expenses);
+  const today = localDate(); // use browser's local date — fixes UTC vs IST timezone issue
+  const data  = await apiFetch(`/dashboard/summary?range=${currentRange}&date=${today}`);
+  if (!data) {
+    ['c-sales','c-expenses','c-purchases','c-profit'].forEach(id => {
+      document.getElementById(id).textContent = 'Error';
+    });
+    return;
+  }
+  document.getElementById('c-sales').textContent     = fmt(data.sales);
+  document.getElementById('c-expenses').textContent  = fmt(data.expenses);
   document.getElementById('c-purchases').textContent = fmt(data.purchases);
-  const profitEl = document.getElementById('c-profit');
-  profitEl.textContent = fmt(data.profit);
-  profitEl.className = 'card-value ' + (data.profit >= 0 ? 'green' : 'red');
+  const el = document.getElementById('c-profit');
+  el.textContent = fmt(data.profit);
+  el.className   = 'card-value ' + (data.profit >= 0 ? 'green' : 'red');
   updatePieChart(data);
 }
 
 async function loadTransactions() {
-  const type = document.getElementById('type-filter').value;
-  const data = await apiFetch(`/dashboard/transactions?limit=50&type=${type}`);
+  const type  = document.getElementById('type-filter').value;
   const tbody = document.getElementById('tx-body');
-  if (!data || !data.transactions.length) {
+  tbody.innerHTML = '<tr><td colspan="5" class="loading"><span class="spinner"></span>Loading…</td></tr>';
+
+  const data = await apiFetch(`/dashboard/transactions?limit=50&type=${type}`);
+  if (!data) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="5" style="color:var(--red)">Failed to load — tap ↻ to retry</td></tr>';
+    return;
+  }
+  if (!data.transactions.length) {
     tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No transactions found</td></tr>';
     return;
   }
@@ -331,28 +392,26 @@ async function loadTransactions() {
       <td><span class="badge badge-${t.type}">${t.type}</span></td>
       <td class="amount-cell">${fmt(t.amount)}</td>
       <td class="note-cell">${t.note || '—'}</td>
-      <td style="color:var(--muted);font-size:0.8rem">${shortDevice(t.device_id)}</td>
-    </tr>
-  `).join('');
+      <td style="color:var(--muted);font-size:0.8rem">${t.device_id ? t.device_id.slice(0,8)+'…' : '—'}</td>
+    </tr>`).join('');
 }
 
 async function loadCharts() {
   const data = await apiFetch('/dashboard/monthly-chart?months=6');
   if (!data) return;
+
   const months = [...new Set(data.data.map(r => r.month))].sort();
-  const get = (m, type) => { const r = data.data.find(d => d.month === m && d.type === type); return r ? parseFloat(r.total) : 0; };
+  const get    = (m, type) => { const r = data.data.find(d => d.month === m && d.type === type); return r ? parseFloat(r.total) : 0; };
   const labels = months.map(m => fmtMonth(m));
+
   if (barChart) barChart.destroy();
   barChart = new Chart(document.getElementById('bar-chart'), {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        { label: 'Sales',     data: months.map(m => get(m, 'sale')),     backgroundColor: 'rgba(34,197,94,0.7)' },
-        { label: 'Expenses',  data: months.map(m => get(m, 'expense')),  backgroundColor: 'rgba(239,68,68,0.7)' },
-        { label: 'Purchases', data: months.map(m => get(m, 'purchase')), backgroundColor: 'rgba(59,130,246,0.7)' },
-      ]
-    },
+    data: { labels, datasets: [
+      { label: 'Sales',     data: months.map(m => get(m, 'sale')),     backgroundColor: 'rgba(34,197,94,0.7)' },
+      { label: 'Expenses',  data: months.map(m => get(m, 'expense')),  backgroundColor: 'rgba(239,68,68,0.7)' },
+      { label: 'Purchases', data: months.map(m => get(m, 'purchase')), backgroundColor: 'rgba(59,130,246,0.7)' },
+    ]},
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { labels: { color: '#7b7f93', font: { size: 11 } } } },
@@ -367,104 +426,129 @@ async function loadCharts() {
 function updatePieChart(summary) {
   if (pieChart) pieChart.destroy();
   const total = summary.sales + summary.expenses + summary.purchases;
-  if (total === 0) return;
+  if (!total) return;
   pieChart = new Chart(document.getElementById('pie-chart'), {
     type: 'doughnut',
     data: {
       labels: ['Sales', 'Expenses', 'Purchases'],
-      datasets: [{ data: [summary.sales, summary.expenses, summary.purchases], backgroundColor: ['rgba(34,197,94,0.8)', 'rgba(239,68,68,0.8)', 'rgba(59,130,246,0.8)'], borderWidth: 0 }]
+      datasets: [{ data: [summary.sales, summary.expenses, summary.purchases],
+        backgroundColor: ['rgba(34,197,94,0.8)','rgba(239,68,68,0.8)','rgba(59,130,246,0.8)'], borderWidth: 0 }]
     },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: '60%',
-      plugins: { legend: { labels: { color: '#7b7f93', font: { size: 11 } } } }
-    }
+    options: { responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { labels: { color: '#7b7f93', font: { size: 11 } } } } }
   });
 }
+
+// ── Slip Tracker ─────────────────────────────────────────────────────────────
 
 async function loadSlips() {
   document.getElementById('slips-body').innerHTML =
     '<tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr>';
 
   const data = await apiFetch('/dashboard/slips');
-  if (!data) return;
+  if (!data) {
+    document.getElementById('slips-body').innerHTML =
+      '<tr class="empty-row"><td colspan="6" style="color:var(--red)">Failed to load — tap ↻ to retry</td></tr>';
+    return;
+  }
 
   const parties = data.parties || [];
-  const totalBilled      = parties.reduce((a, p) => a + parseFloat(p.total_billed  || 0), 0);
-  const totalPaid        = parties.reduce((a, p) => a + parseFloat(p.total_paid    || 0), 0);
-  const totalOutstanding = parties.reduce((a, p) => a + parseFloat(p.outstanding   || 0), 0);
-
-  document.getElementById('s-outstanding').textContent  = fmt(totalOutstanding);
-  document.getElementById('s-billed').textContent       = fmt(totalBilled);
-  document.getElementById('s-collected').textContent    = fmt(totalPaid);
-  document.getElementById('s-party-count').textContent  = parties.length;
+  document.getElementById('s-outstanding').textContent = fmt(parties.reduce((a, p) => a + parseFloat(p.outstanding || 0), 0));
+  document.getElementById('s-billed').textContent      = fmt(parties.reduce((a, p) => a + parseFloat(p.total_billed || 0), 0));
+  document.getElementById('s-collected').textContent   = fmt(parties.reduce((a, p) => a + parseFloat(p.total_paid   || 0), 0));
+  document.getElementById('s-count').textContent       = parties.length;
 
   if (!parties.length) {
     document.getElementById('slips-body').innerHTML =
-      '<tr class="empty-row"><td colspan="6">No parties found</td></tr>';
+      '<tr class="empty-row"><td colspan="6">No parties found — sync from the Android app first</td></tr>';
     return;
   }
 
   document.getElementById('slips-body').innerHTML = parties.map(p => {
     const outstanding = parseFloat(p.outstanding || 0);
-    const statusBadge = outstanding > 0
-      ? `<span class="badge badge-due">Due ₹${parseFloat(outstanding).toLocaleString('en-IN', {maximumFractionDigits:0})}</span>`
+    const badge = outstanding > 0
+      ? `<span class="badge badge-due">Due ${fmt(outstanding)}</span>`
       : `<span class="badge badge-paid">Settled</span>`;
-    return `<tr class="clickable" onclick="showPartyReport('${p.id}', '${p.name.replace(/'/g, "\\'")}')">
+    return `<tr class="clickable" onclick="showPartyReport('${p.id}','${p.name.replace(/'/g,"\\'")}')">
       <td style="font-weight:600">${p.name}</td>
       <td class="amount-cell">${fmt(p.total_billed)}</td>
-      <td class="amount-cell" style="color:var(--green)">${fmt(p.total_paid)}</td>
+      <td class="amount-cell green">${fmt(p.total_paid)}</td>
       <td class="amount-cell" style="color:${outstanding > 0 ? 'var(--red)' : 'var(--green)'}">${fmt(outstanding)}</td>
       <td style="color:var(--muted)">${p.slip_count}</td>
-      <td>${statusBadge}</td>
+      <td>${badge}</td>
     </tr>`;
   }).join('');
 }
 
 async function showPartyReport(partyId, partyName) {
   document.getElementById('modal-party-name').textContent = partyName;
-  document.getElementById('modal-report-body').innerHTML =
+  document.getElementById('modal-body').innerHTML =
     '<tr><td colspan="4" class="loading"><span class="spinner"></span>Loading…</td></tr>';
   document.getElementById('party-modal').classList.add('open');
 
   const data = await apiFetch(`/dashboard/party-report/${partyId}`);
-  if (!data) return;
-
-  const report = data.report || [];
-  if (!report.length) {
-    document.getElementById('modal-report-body').innerHTML =
-      '<tr class="empty-row"><td colspan="4">No slip data found</td></tr>';
+  if (!data || !data.report.length) {
+    document.getElementById('modal-body').innerHTML =
+      '<tr class="empty-row"><td colspan="4">No data found</td></tr>';
     return;
   }
-
-  document.getElementById('modal-report-body').innerHTML = report.map(r => {
-    const outstanding = parseFloat(r.outstanding || 0);
+  document.getElementById('modal-body').innerHTML = data.report.map(r => {
+    const due = parseFloat(r.outstanding || 0);
     return `<tr>
       <td style="font-weight:600">${fmtMonth(r.month)}</td>
       <td style="color:var(--muted)">${r.slip_count}</td>
       <td class="amount-cell">${fmt(r.total_billed)}</td>
-      <td class="amount-cell" style="color:${outstanding > 0 ? 'var(--red)' : 'var(--green)'}">${fmt(outstanding)}</td>
+      <td class="amount-cell" style="color:${due > 0 ? 'var(--red)' : 'var(--green)'}">${fmt(due)}</td>
     </tr>`;
   }).join('');
 }
 
-function closeModal() {
-  document.getElementById('party-modal').classList.remove('open');
+function closeModal() { document.getElementById('party-modal').classList.remove('open'); }
+
+// ── Refresh ───────────────────────────────────────────────────────────────────
+
+async function loadAll() {
+  const btn = document.getElementById('refresh-btn');
+  btn.classList.add('spinning');
+  await Promise.all([loadSummary(), loadTransactions(), loadCharts()]);
+  btn.classList.remove('spinning');
+  lastUpdated = Date.now();
+  document.getElementById('updated-label').textContent = 'Updated just now';
 }
 
-function loadAll() {
-  loadSummary();
-  loadTransactions();
-  loadCharts();
+async function manualRefresh() {
+  if (currentView === 'slips') {
+    const btn = document.getElementById('refresh-btn');
+    btn.classList.add('spinning');
+    await loadSlips();
+    btn.classList.remove('spinning');
+    lastUpdated = Date.now();
+    document.getElementById('updated-label').textContent = 'Updated just now';
+  } else {
+    await loadAll();
+  }
+  showToast('Refreshed ✓');
 }
 
-// Auto refresh every 60 seconds
-setInterval(() => { if (token) { loadSummary(); loadTransactions(); loadCharts(); if (currentView === 'slips') loadSlips(); } }, 60000);
+// Update "X min ago" label every minute
+setInterval(() => {
+  if (lastUpdated) {
+    document.getElementById('updated-label').textContent = 'Updated ' + timeAgo(lastUpdated);
+  }
+}, 30000);
+
+// Auto-refresh every 60 seconds
+setInterval(() => {
+  if (!token) return;
+  loadSummary(); loadTransactions(); loadCharts();
+  if (currentView === 'slips') loadSlips();
+  lastUpdated = Date.now();
+}, 60000);
+
+// ── Init ──────────────────────────────────────────────────────────────────────
 
 window.addEventListener('DOMContentLoaded', () => {
-  if (token) {
-    const d = localStorage.getItem('flow_device') || 'user';
-    showApp(d);
-  }
+  if (token) showApp(localStorage.getItem('flow_device') || 'user');
 });
 </script>
 </body>

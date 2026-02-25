@@ -48,6 +48,7 @@ class HomeFragment : Fragment() {
     }
     private lateinit var recentAdapter: TransactionAdapter
     private var activeTab = "daily"
+    private var showSyncToast = false
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -123,6 +124,7 @@ private fun setupGreeting() {
 
         binding.btnSync.setOnClickListener {
             binding.btnSync.animate().rotation(binding.btnSync.rotation + 360f).setDuration(500).start()
+            showSyncToast = true
             viewModel.sync()
         }
         binding.btnSync.setOnLongClickListener {
@@ -205,6 +207,19 @@ private fun setupGreeting() {
 
         viewModel.syncing.observe(viewLifecycleOwner) { syncing ->
             binding.progressSync.visibility = if (syncing) View.VISIBLE else View.GONE
+        }
+
+        viewModel.syncStatus.observe(viewLifecycleOwner) { status ->
+            if (status.isNullOrEmpty()) {
+                binding.tvSyncStatus.visibility = View.GONE
+            } else {
+                binding.tvSyncStatus.text = status
+                binding.tvSyncStatus.visibility = View.VISIBLE
+                if (showSyncToast) {
+                    Toast.makeText(requireContext(), status, Toast.LENGTH_SHORT).show()
+                    showSyncToast = false
+                }
+            }
         }
 
 viewModel.weeklyData.observe(viewLifecycleOwner) { data -> bindChart(data) }
