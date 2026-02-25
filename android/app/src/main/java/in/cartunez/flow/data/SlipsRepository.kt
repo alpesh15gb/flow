@@ -59,10 +59,57 @@ class SlipsRepository(
     }
 
     /**
+     * Insert the slip (if new) then mark it APPROVED with the linked tx.
+     * Uses IGNORE conflict strategy so an existing slip is updated instead.
+     */
+    suspend fun saveAndApproveSlip(slip: Slip, txId: String) {
+        val approved = slip.copy(status = SlipStatus.APPROVED.name, linkedTxId = txId, synced = false)
+        val inserted = slipDao.insert(approved)
+        if (inserted == -1L) slipDao.update(approved)
+    }
+
+    /**
      * Outstanding = sum of (amount - amountPaid) for non-COLLECTED slips of a party.
      */
     suspend fun getOutstanding(partyId: String): Double =
         slipDao.getPendingByParty(partyId).sumOf { it.amount - it.amountPaid }
+
+    fun observePartyStats(): Flow<List<PartyStats>> = slipDao.observePartyStats()
+
+    fun observeAllCollectionTotals(): Flow<List<PartyCollectedSum>> =
+        collectionDao.observeAllCollectionTotals()
+
+    data class MonthlyPartyReport(
+        val month: String,
+        val displayMonth: String,
+        val slipCount: Int,
+        val totalBilled: Double,
+        val totalCollected: Double,
+        val outstanding: Double
+    )
+
+    suspend fun getMonthlyReport(partyId: String): List<MonthlyPartyReport> {
+        val slipStats = slipDao.getMonthlyStats(partyId)
+        val collStats = collectionDao.getMonthlyCollections(partyId)
+        val collMap = collStats.associateBy { it.month }
+        return slipStats.map { s ->
+            val collected = collMap[s.month]?.totalCollected ?: 0.0
+            MonthlyPartyReport(
+                month = s.month,
+                displayMonth = formatYearMonth(s.month),
+                slipCount = s.slipCount,
+                totalBilled = s.totalAmount,
+                totalCollected = collected,
+                outstanding = s.totalAmount - s.collectedAmount
+            )
+        }
+    }
+
+    private fun formatYearMonth(ym: String): String = try {
+        val parts = ym.split("-")
+        val months = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+        "${months[parts[1].toInt() - 1]} ${parts[0]}"
+    } catch (e: Exception) { ym }
 
     // ── Collections ───────────────────────────────────────────────────────────
 

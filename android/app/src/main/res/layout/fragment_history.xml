@@ -29,7 +29,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/textSecondary"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/btnReports"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reports"
+            android:textColor="@color/blue"
+            android:textSize="13sp"
+            android:padding="8dp"
+            android:background="@drawable/bg_sync_btn"
+            android:clickable="true"
+            android:focusable="true" />
     </LinearLayout>
 
     <!-- Filter chips -->

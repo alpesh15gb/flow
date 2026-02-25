@@ -30,14 +30,13 @@
                 android:textSize="11sp"
                 android:letterSpacing="0.04" />
 
-            <TextView
-                android:layout_width="wrap_content"
+            <ImageView
+                android:layout_width="72dp"
                 android:layout_height="wrap_content"
-                android:text="Flow"
-                android:textColor="@color/textPrimary"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:letterSpacing="-0.02" />
+                android:src="@drawable/logo"
+                android:adjustViewBounds="true"
+                android:scaleType="fitStart"
+                android:contentDescription="Flow" />
         </LinearLayout>
 
         <ProgressBar

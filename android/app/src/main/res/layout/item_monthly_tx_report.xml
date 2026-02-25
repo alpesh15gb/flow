@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginHorizontal="0dp"
+    android:layout_marginVertical="4dp"
+    android:background="@drawable/bg_tx_item"
+    android:padding="14dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:id="@+id/tvMonth"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/textPrimary"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="end">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="NET PROFIT"
+                android:textColor="@color/textSecondary"
+                android:textSize="9sp"
+                android:letterSpacing="0.06" />
+            <TextView
+                android:id="@+id/tvNetProfit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#14FFFFFF"
+        android:layout_marginBottom="10dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="SALES" android:textColor="@color/textSecondary" android:textSize="9sp" android:letterSpacing="0.06"/>
+            <TextView android:id="@+id/tvSales" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="@color/green" android:textSize="13sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvSalesCount" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="@color/textSecondary" android:textSize="11sp"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="EXPENSES" android:textColor="@color/textSecondary" android:textSize="9sp" android:letterSpacing="0.06"/>
+            <TextView android:id="@+id/tvExpenses" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="@color/red" android:textSize="13sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvExpensesCount" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="@color/textSecondary" android:textSize="11sp"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="PURCHASES" android:textColor="@color/textSecondary" android:textSize="9sp" android:letterSpacing="0.06"/>
+            <TextView android:id="@+id/tvPurchases" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="@color/blue" android:textSize="13sp" android:textStyle="bold"/>
+            <TextView android:id="@+id/tvPurchasesCount" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textColor="@color/textSecondary" android:textSize="11sp"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

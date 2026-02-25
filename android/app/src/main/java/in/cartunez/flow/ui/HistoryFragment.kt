@@ -27,6 +27,7 @@ class HistoryFragment : Fragment() {
     private val viewModel: MainViewModel by activityViewModels {
         MainViewModelFactory(
             TransactionRepository(app.database.transactionDao(), app.apiService, app.prefsStore),
+            app.slipsRepository,
             app.prefsStore
         )
     }
@@ -48,12 +49,20 @@ class HistoryFragment : Fragment() {
 
     private fun setupRecyclerView() {
         historyAdapter = HistoryAdapter()
-        historyAdapter.onLongClick = { tx -> showEditDialog(tx) }
+        historyAdapter.onClick = { tx -> showEditDialog(tx) }
         binding.rvHistory.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = historyAdapter
         }
         attachSwipeToDelete()
+
+        binding.btnReports.setOnClickListener {
+            requireActivity().supportFragmentManager
+                .beginTransaction()
+                .replace(`in`.cartunez.flow.R.id.fragmentContainer, TransactionReportFragment())
+                .addToBackStack("tx_reports")
+                .commit()
+        }
     }
 
     private fun showEditDialog(tx: Transaction) {

@@ -12,7 +12,7 @@ import `in`.cartunez.flow.databinding.ItemTransactionBinding
 
 class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.VH>(DIFF) {
 
-    var onLongClick: ((Transaction) -> Unit)? = null
+    var onClick: ((Transaction) -> Unit)? = null
 
     inner class VH(private val b: ItemTransactionBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(tx: Transaction) {
@@ -33,10 +33,7 @@ class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.VH>(DIFF)
             b.tvType.text = tx.type.replaceFirstChar { it.uppercase() }
             b.tvDate.text = tx.date
 
-            b.root.setOnLongClickListener {
-                onLongClick?.invoke(tx)
-                true
-            }
+            b.root.setOnClickListener { onClick?.invoke(tx) }
         }
     }
 

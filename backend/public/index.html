@@ -26,6 +26,7 @@
     .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 360px; }
     .login-box h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
     .login-box p { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+    .login-box .hint { color: var(--muted); font-size: 0.75rem; margin-bottom: 1rem; margin-top: -0.25rem; }
     .login-box input { width: 100%; padding: 0.75rem 1rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.9rem; margin-bottom: 0.75rem; }
     .login-box input:focus { outline: none; border-color: var(--blue); }
     .btn { width: 100%; padding: 0.75rem; background: var(--blue); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
@@ -40,6 +41,11 @@
     select { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.6rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
     .logout-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; transition: color 0.2s; }
     .logout-btn:hover { color: var(--text); }
+
+    /* View nav */
+    .view-nav { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .view-tab { padding: 0.75rem 1.5rem; font-size: 0.85rem; font-weight: 600; color: var(--muted); border: none; background: transparent; cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; }
+    .view-tab.active { color: var(--text); border-bottom-color: var(--blue); }
 
     .content { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
 
@@ -60,21 +66,23 @@
     .chart-box h2 { font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.05em; }
     .chart-wrap { position: relative; height: 200px; }
 
-    /* Transactions table */
-    .tx-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-    .tx-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
-    .tx-header h2 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
-    .tx-filters { display: flex; gap: 0.5rem; }
-    .tx-table-wrap { overflow-x: auto; }
+    /* Tables */
+    .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
+    .section-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+    .section-header h2 { font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+    .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
     th { padding: 0.6rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
     td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: rgba(255,255,255,0.02); }
+    tr.clickable { cursor: pointer; }
     .badge { display: inline-block; padding: 0.2rem 0.55rem; border-radius: 100px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
     .badge-sale     { background: rgba(34,197,94,0.15);  color: var(--green); }
     .badge-expense  { background: rgba(239,68,68,0.15);  color: var(--red); }
     .badge-purchase { background: rgba(59,130,246,0.15); color: var(--blue); }
+    .badge-paid     { background: rgba(34,197,94,0.15);  color: var(--green); }
+    .badge-due      { background: rgba(239,68,68,0.15);  color: var(--red); }
     .amount-cell { font-variant-numeric: tabular-nums; font-weight: 600; }
     .note-cell { color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
     .empty-row td { text-align: center; color: var(--muted); padding: 2rem; }
@@ -88,6 +96,15 @@
     .tabs { display: flex; gap: 0.25rem; background: var(--bg); border-radius: 8px; padding: 3px; margin-bottom: 1.5rem; width: fit-content; }
     .tab { padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none; background: transparent; color: var(--muted); transition: all 0.2s; }
     .tab.active { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 100%; max-width: 640px; max-height: 85vh; display: flex; flex-direction: column; }
+    .modal-head { padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-head h3 { font-size: 1rem; font-weight: 700; }
+    .modal-close { background: transparent; border: none; color: var(--muted); font-size: 1.25rem; cursor: pointer; line-height: 1; }
+    .modal-body { overflow-y: auto; padding: 0; flex: 1; }
   </style>
 </head>
 <body>
@@ -97,7 +114,8 @@
   <div class="login-box">
     <h1>Flow</h1>
     <p>Cashflow dashboard — enter your device ID to continue</p>
-    <input id="device-id" type="text" placeholder="Device ID (any unique string)" autocomplete="off">
+    <input id="device-id" type="text" placeholder="Device ID (from Android app)" autocomplete="off">
+    <p class="hint">Tip: Long-press the sync button in the Android app to copy your Device ID.</p>
     <input id="display-name" type="text" placeholder="Your name (optional)" autocomplete="off">
     <button class="btn" onclick="login()">Sign In</button>
     <p class="err" id="login-err"></p>
@@ -113,22 +131,25 @@
       <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
   </div>
-  <div class="content">
-    <!-- Range tabs -->
-    <div class="tabs">
-      <button class="tab active" onclick="setRange('daily')">Today</button>
-      <button class="tab" onclick="setRange('monthly')">This Month</button>
-    </div>
 
-    <!-- Summary cards -->
+  <!-- View tabs -->
+  <div class="view-nav">
+    <button class="view-tab active" onclick="switchView('cashflow', this)">Cashflow</button>
+    <button class="view-tab" onclick="switchView('slips', this)">Slip Tracker</button>
+  </div>
+
+  <!-- Cashflow view -->
+  <div id="view-cashflow" class="content">
+    <div class="tabs">
+      <button class="tab active" onclick="setRange('daily', this)">Today</button>
+      <button class="tab" onclick="setRange('monthly', this)">This Month</button>
+    </div>
     <div class="cards">
       <div class="card"><div class="card-label">Sales</div><div class="card-value green" id="c-sales">—</div></div>
       <div class="card"><div class="card-label">Expenses</div><div class="card-value red" id="c-expenses">—</div></div>
       <div class="card"><div class="card-label">Purchases</div><div class="card-value blue" id="c-purchases">—</div></div>
       <div class="card"><div class="card-label">Profit</div><div class="card-value" id="c-profit">—</div></div>
     </div>
-
-    <!-- Charts -->
     <div class="charts">
       <div class="chart-box">
         <h2>Monthly Overview</h2>
@@ -139,27 +160,65 @@
         <div class="chart-wrap"><canvas id="pie-chart"></canvas></div>
       </div>
     </div>
-
-    <!-- Transactions -->
-    <div class="tx-section">
-      <div class="tx-header">
+    <div class="section">
+      <div class="section-header">
         <h2>Transactions</h2>
-        <div class="tx-filters">
-          <select id="type-filter" onchange="loadTransactions()">
-            <option value="all">All types</option>
-            <option value="sale">Sales</option>
-            <option value="expense">Expenses</option>
-            <option value="purchase">Purchases</option>
-          </select>
-        </div>
+        <select id="type-filter" onchange="loadTransactions()">
+          <option value="all">All types</option>
+          <option value="sale">Sales</option>
+          <option value="expense">Expenses</option>
+          <option value="purchase">Purchases</option>
+        </select>
       </div>
-      <div class="tx-table-wrap">
+      <div class="table-wrap">
         <table>
-          <thead>
-            <tr><th>Date</th><th>Type</th><th>Amount</th><th>Note</th><th>Device</th></tr>
-          </thead>
+          <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Note</th><th>Device</th></tr></thead>
           <tbody id="tx-body">
             <tr><td colspan="5" class="loading"><span class="spinner"></span>Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slip Tracker view -->
+  <div id="view-slips" class="content" style="display:none">
+    <div class="cards" id="slips-summary-cards">
+      <div class="card"><div class="card-label">Total Outstanding</div><div class="card-value red" id="s-outstanding">—</div></div>
+      <div class="card"><div class="card-label">Total Billed</div><div class="card-value blue" id="s-billed">—</div></div>
+      <div class="card"><div class="card-label">Total Collected</div><div class="card-value green" id="s-collected">—</div></div>
+      <div class="card"><div class="card-label">Parties</div><div class="card-value" id="s-party-count">—</div></div>
+    </div>
+    <div class="section">
+      <div class="section-header">
+        <h2>Party Balances</h2>
+        <span style="font-size:0.75rem;color:var(--muted)">Click a row for monthly report</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Party</th><th>Total Billed</th><th>Collected</th><th>Outstanding</th><th>Slips</th><th>Status</th></tr></thead>
+          <tbody id="slips-body">
+            <tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Party report modal -->
+<div class="modal-overlay" id="party-modal" onclick="if(event.target===this) closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-party-name"></h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Month</th><th>Slips</th><th>Billed</th><th>Outstanding</th></tr></thead>
+          <tbody id="modal-report-body">
+            <tr><td colspan="4" class="loading"><span class="spinner"></span>Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -171,14 +230,17 @@
 const API = '/api';
 let token = localStorage.getItem('flow_token');
 let currentRange = 'daily';
+let currentView  = 'cashflow';
 let barChart, pieChart;
 
 function fmt(n) {
   return '₹' + parseFloat(n || 0).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
-
-function shortDevice(d) {
-  return d ? d.slice(0, 8) + '…' : '—';
+function shortDevice(d) { return d ? d.slice(0, 8) + '…' : '—'; }
+function fmtMonth(m) {
+  if (!m) return m;
+  const [y, mo] = m.split('-');
+  return new Date(y, mo - 1).toLocaleString('default', { month: 'short', year: '2-digit' });
 }
 
 async function apiFetch(path, opts = {}) {
@@ -196,7 +258,6 @@ async function login() {
   const err = document.getElementById('login-err');
   err.style.display = 'none';
   if (!deviceId) { err.textContent = 'Device ID is required'; err.style.display = 'block'; return; }
-
   try {
     const res = await fetch(`${API}/auth/simple`, {
       method: 'POST',
@@ -228,10 +289,19 @@ function showApp(label) {
   loadAll();
 }
 
-function setRange(r) {
+function switchView(view, btn) {
+  currentView = view;
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('view-cashflow').style.display = view === 'cashflow' ? '' : 'none';
+  document.getElementById('view-slips').style.display    = view === 'slips'    ? '' : 'none';
+  if (view === 'slips') loadSlips();
+}
+
+function setRange(r, btn) {
   currentRange = r;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
+  btn.classList.add('active');
   loadSummary();
 }
 
@@ -269,15 +339,9 @@ async function loadTransactions() {
 async function loadCharts() {
   const data = await apiFetch('/dashboard/monthly-chart?months=6');
   if (!data) return;
-
   const months = [...new Set(data.data.map(r => r.month))].sort();
-  const get = (m, type) => {
-    const r = data.data.find(d => d.month === m && d.type === type);
-    return r ? parseFloat(r.total) : 0;
-  };
-
-  const labels = months.map(m => { const [y, mo] = m.split('-'); return new Date(y, mo-1).toLocaleString('default', { month: 'short', year: '2-digit' }); });
-
+  const get = (m, type) => { const r = data.data.find(d => d.month === m && d.type === type); return r ? parseFloat(r.total) : 0; };
+  const labels = months.map(m => fmtMonth(m));
   if (barChart) barChart.destroy();
   barChart = new Chart(document.getElementById('bar-chart'), {
     type: 'bar',
@@ -317,6 +381,76 @@ function updatePieChart(summary) {
   });
 }
 
+async function loadSlips() {
+  document.getElementById('slips-body').innerHTML =
+    '<tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr>';
+
+  const data = await apiFetch('/dashboard/slips');
+  if (!data) return;
+
+  const parties = data.parties || [];
+  const totalBilled      = parties.reduce((a, p) => a + parseFloat(p.total_billed  || 0), 0);
+  const totalPaid        = parties.reduce((a, p) => a + parseFloat(p.total_paid    || 0), 0);
+  const totalOutstanding = parties.reduce((a, p) => a + parseFloat(p.outstanding   || 0), 0);
+
+  document.getElementById('s-outstanding').textContent  = fmt(totalOutstanding);
+  document.getElementById('s-billed').textContent       = fmt(totalBilled);
+  document.getElementById('s-collected').textContent    = fmt(totalPaid);
+  document.getElementById('s-party-count').textContent  = parties.length;
+
+  if (!parties.length) {
+    document.getElementById('slips-body').innerHTML =
+      '<tr class="empty-row"><td colspan="6">No parties found</td></tr>';
+    return;
+  }
+
+  document.getElementById('slips-body').innerHTML = parties.map(p => {
+    const outstanding = parseFloat(p.outstanding || 0);
+    const statusBadge = outstanding > 0
+      ? `<span class="badge badge-due">Due ₹${parseFloat(outstanding).toLocaleString('en-IN', {maximumFractionDigits:0})}</span>`
+      : `<span class="badge badge-paid">Settled</span>`;
+    return `<tr class="clickable" onclick="showPartyReport('${p.id}', '${p.name.replace(/'/g, "\\'")}')">
+      <td style="font-weight:600">${p.name}</td>
+      <td class="amount-cell">${fmt(p.total_billed)}</td>
+      <td class="amount-cell" style="color:var(--green)">${fmt(p.total_paid)}</td>
+      <td class="amount-cell" style="color:${outstanding > 0 ? 'var(--red)' : 'var(--green)'}">${fmt(outstanding)}</td>
+      <td style="color:var(--muted)">${p.slip_count}</td>
+      <td>${statusBadge}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function showPartyReport(partyId, partyName) {
+  document.getElementById('modal-party-name').textContent = partyName;
+  document.getElementById('modal-report-body').innerHTML =
+    '<tr><td colspan="4" class="loading"><span class="spinner"></span>Loading…</td></tr>';
+  document.getElementById('party-modal').classList.add('open');
+
+  const data = await apiFetch(`/dashboard/party-report/${partyId}`);
+  if (!data) return;
+
+  const report = data.report || [];
+  if (!report.length) {
+    document.getElementById('modal-report-body').innerHTML =
+      '<tr class="empty-row"><td colspan="4">No slip data found</td></tr>';
+    return;
+  }
+
+  document.getElementById('modal-report-body').innerHTML = report.map(r => {
+    const outstanding = parseFloat(r.outstanding || 0);
+    return `<tr>
+      <td style="font-weight:600">${fmtMonth(r.month)}</td>
+      <td style="color:var(--muted)">${r.slip_count}</td>
+      <td class="amount-cell">${fmt(r.total_billed)}</td>
+      <td class="amount-cell" style="color:${outstanding > 0 ? 'var(--red)' : 'var(--green)'}">${fmt(outstanding)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function closeModal() {
+  document.getElementById('party-modal').classList.remove('open');
+}
+
 function loadAll() {
   loadSummary();
   loadTransactions();
@@ -324,9 +458,8 @@ function loadAll() {
 }
 
 // Auto refresh every 60 seconds
-setInterval(() => { if (token) loadAll(); }, 60000);
+setInterval(() => { if (token) { loadSummary(); loadTransactions(); loadCharts(); if (currentView === 'slips') loadSlips(); } }, 60000);
 
-// Init
 window.addEventListener('DOMContentLoaded', () => {
   if (token) {
     const d = localStorage.getItem('flow_device') || 'user';

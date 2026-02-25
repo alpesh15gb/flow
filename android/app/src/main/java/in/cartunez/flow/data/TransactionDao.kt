@@ -44,6 +44,21 @@ interface TransactionDao {
 
     @Query("UPDATE transactions SET synced = 1 WHERE id IN (:ids)")
     suspend fun markSynced(ids: List<String>)
+
+    @Query("""
+        SELECT substr(date, 1, 7) AS month, type,
+               SUM(amount) AS total, COUNT(*) AS count
+        FROM transactions
+        GROUP BY substr(date, 1, 7), type ORDER BY month DESC
+    """)
+    suspend fun getMonthlyBreakdown(): List<MonthlyTypeStat>
+
+    @Query("SELECT type, SUM(amount) AS total, COUNT(*) AS count FROM transactions GROUP BY type")
+    suspend fun getAllTimeSummary(): List<TypeCountSum>
 }
 
 data class TypeSum(val type: String, val total: Double)
+
+data class MonthlyTypeStat(val month: String, val type: String, val total: Double, val count: Int)
+
+data class TypeCountSum(val type: String, val total: Double, val count: Int)

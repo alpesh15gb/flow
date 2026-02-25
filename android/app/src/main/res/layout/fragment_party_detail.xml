@@ -39,6 +39,19 @@
             android:ellipsize="end" />
 
         <TextView
+            android:id="@+id/btnMonthlyReport"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Report"
+            android:textColor="@color/blue"
+            android:textSize="12sp"
+            android:padding="8dp"
+            android:background="@drawable/bg_sync_btn"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
             android:id="@+id/tvOutstanding"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

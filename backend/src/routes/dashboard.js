@@ -97,4 +97,77 @@ router.get('/monthly-chart', requireAuth, async (req, res) => {
   }
 });
 
+// GET /api/dashboard/slips — party balances for web slip tracker
+router.get('/slips', requireAuth, async (req, res) => {
+  const user_id = req.user.user_id;
+  try {
+    const result = await pool.query(
+      `SELECT
+         p.id,
+         p.name,
+         COALESCE(SUM(s.amount), 0)                                                              AS total_billed,
+         COALESCE(SUM(s.amount_paid), 0)                                                         AS total_paid,
+         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' THEN s.amount - s.amount_paid ELSE 0 END), 0) AS outstanding,
+         COUNT(DISTINCT s.id)                                                                    AS slip_count,
+         COUNT(DISTINCT CASE WHEN s.status != 'COLLECTED' THEN s.id END)                        AS pending_count
+       FROM parties p
+       LEFT JOIN slips s ON s.party_id = p.id AND s.user_id = $1
+       WHERE p.user_id = $1
+       GROUP BY p.id, p.name
+       ORDER BY outstanding DESC, p.name ASC`,
+      [user_id]
+    );
+    res.json({ parties: result.rows });
+  } catch (err) {
+    console.error('dashboard/slips error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/dashboard/party-report/:partyId — monthly slip breakdown for a party
+router.get('/party-report/:partyId', requireAuth, async (req, res) => {
+  const { partyId } = req.params;
+  const user_id = req.user.user_id;
+  try {
+    const [slipStats, collStats] = await Promise.all([
+      pool.query(
+        `SELECT
+           TO_CHAR(DATE_TRUNC('month', date::date), 'YYYY-MM') AS month,
+           COUNT(*)        AS slip_count,
+           SUM(amount)     AS total_billed,
+           SUM(amount_paid) AS total_paid
+         FROM slips
+         WHERE user_id = $1 AND party_id = $2
+         GROUP BY month ORDER BY month DESC`,
+        [user_id, partyId]
+      ),
+      pool.query(
+        `SELECT
+           TO_CHAR(DATE_TRUNC('month', date::date), 'YYYY-MM') AS month,
+           SUM(amount_paid) AS collected
+         FROM slip_collections
+         WHERE user_id = $1 AND party_id = $2
+         GROUP BY month ORDER BY month DESC`,
+        [user_id, partyId]
+      )
+    ]);
+
+    const collMap = {};
+    collStats.rows.forEach(r => { collMap[r.month] = parseFloat(r.collected || 0); });
+
+    const report = slipStats.rows.map(r => ({
+      month:        r.month,
+      slip_count:   parseInt(r.slip_count),
+      total_billed: parseFloat(r.total_billed || 0),
+      total_paid:   parseFloat(r.total_paid   || 0),
+      outstanding:  parseFloat(r.total_billed || 0) - parseFloat(r.total_paid || 0)
+    }));
+
+    res.json({ report });
+  } catch (err) {
+    console.error('dashboard/party-report error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;

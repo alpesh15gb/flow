@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import `in`.cartunez.flow.R
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -24,10 +25,7 @@ class SlipsFragment : Fragment() {
         )
     }
 
-    /** Called by MainActivity when a share intent arrives */
-    var pendingShareUri: android.net.Uri? = null
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSlipsBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -49,6 +47,10 @@ class SlipsFragment : Fragment() {
 
         viewModel.parties.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
+            val total = list.sumOf { it.outstanding }
+            binding.tvTotalOutstanding.text = "₹${String.format("%,.0f", total)}"
+            binding.tvPartyCount.text = "${list.size}"
+            binding.headerBalance.visibility = if (list.isEmpty()) View.GONE else View.VISIBLE
             binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
 
@@ -60,11 +62,6 @@ class SlipsFragment : Fragment() {
                 .commit()
         }
 
-        // Open slip review if we got a share intent
-        pendingShareUri?.let { uri ->
-            pendingShareUri = null
-            SlipReviewSheet.newInstance(uri).show(parentFragmentManager, "slip_review")
-        }
     }
 
     override fun onDestroyView() {

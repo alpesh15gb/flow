@@ -64,6 +64,14 @@ class PartyDetailFragment : Fragment() {
             }
         )
 
+        adapter.onClick = { slip ->
+            val path = slip.imageUri
+            if (!path.isNullOrEmpty()) {
+                FullScreenImageDialog.newInstance(path)
+                    .show(parentFragmentManager, "full_img")
+            }
+        }
+
         binding.rvSlips.layoutManager = LinearLayoutManager(requireContext())
         binding.rvSlips.adapter = adapter
 
@@ -95,6 +103,15 @@ class PartyDetailFragment : Fragment() {
         binding.btnRecordCollection.setOnClickListener {
             RecordCollectionSheet.newInstance(partyId, partyName)
                 .show(parentFragmentManager, "record_collection")
+        }
+
+        binding.btnMonthlyReport.setOnClickListener {
+            requireActivity().supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.fragmentContainer,
+                    PartyMonthlyReportFragment.newInstance(partyId, partyName))
+                .addToBackStack("party_monthly")
+                .commit()
         }
     }
 

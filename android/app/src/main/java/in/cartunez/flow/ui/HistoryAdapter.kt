@@ -21,7 +21,7 @@ sealed class HistoryItem {
 
 class HistoryAdapter : ListAdapter<HistoryItem, RecyclerView.ViewHolder>(DIFF) {
 
-    var onLongClick: ((Transaction) -> Unit)? = null
+    var onClick: ((Transaction) -> Unit)? = null
 
     companion object {
         private const val TYPE_HEADER = 0
@@ -81,10 +81,7 @@ class HistoryAdapter : ListAdapter<HistoryItem, RecyclerView.ViewHolder>(DIFF) {
             b.tvTypeIcon.backgroundTintList = ContextCompat.getColorStateList(b.root.context, iconBg)
             b.tvAmount.setTextColor(ContextCompat.getColor(b.root.context, amountColor))
 
-            b.root.setOnLongClickListener {
-                onLongClick?.invoke(tx)
-                true
-            }
+            b.root.setOnClickListener { onClick?.invoke(tx) }
         }
     }
 

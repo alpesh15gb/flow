@@ -1,10 +1,6 @@
 package `in`.cartunez.flow.ui
 
 import android.animation.ValueAnimator
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.Color
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
@@ -21,7 +17,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.launch
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.BarData
 import com.github.mikephil.charting.data.BarDataSet
@@ -33,8 +31,6 @@ import `in`.cartunez.flow.data.Summary
 import `in`.cartunez.flow.data.Transaction
 import `in`.cartunez.flow.data.TransactionRepository
 import `in`.cartunez.flow.databinding.FragmentHomeBinding
-import `in`.cartunez.flow.notification.FlowNotificationListener
-import `in`.cartunez.flow.sms.SmsReceiver
 import java.time.LocalTime
 
 class HomeFragment : Fragment() {
@@ -46,21 +42,13 @@ class HomeFragment : Fragment() {
     private val viewModel: MainViewModel by activityViewModels {
         MainViewModelFactory(
             TransactionRepository(app.database.transactionDao(), app.apiService, app.prefsStore),
+            app.slipsRepository,
             app.prefsStore
         )
     }
     private lateinit var recentAdapter: TransactionAdapter
     private var activeTab = "daily"
 
-    private val suggestionReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            val amount = intent.getDoubleExtra("amount", -1.0)
-            val type   = intent.getStringExtra("type") ?: return
-            val note   = intent.getStringExtra("note") ?: ""
-            val source = if (intent.action == SmsReceiver.ACTION_SMS_PARSED) "SMS" else "WhatsApp"
-            if (amount > 0) viewModel.suggestTransaction(PendingTransaction(amount, type, note, source))
-        }
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
@@ -78,21 +66,7 @@ class HomeFragment : Fragment() {
         binding.root.animate().alpha(1f).setDuration(250).start()
     }
 
-    override fun onStart() {
-        super.onStart()
-        val filter = IntentFilter().apply {
-            addAction(SmsReceiver.ACTION_SMS_PARSED)
-            addAction(FlowNotificationListener.ACTION_WA_PARSED)
-        }
-        requireContext().registerReceiver(suggestionReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-    }
-
-    override fun onStop() {
-        super.onStop()
-        runCatching { requireContext().unregisterReceiver(suggestionReceiver) }
-    }
-
-    private fun setupGreeting() {
+private fun setupGreeting() {
         val hour = LocalTime.now().hour
         binding.tvGreeting.text = when {
             hour < 12 -> "Good morning"
@@ -103,7 +77,7 @@ class HomeFragment : Fragment() {
 
     private fun setupRecyclerView() {
         recentAdapter = TransactionAdapter()
-        recentAdapter.onLongClick = { tx -> showEditDialog(tx) }
+        recentAdapter.onClick = { tx -> showEditDialog(tx) }
         binding.rvRecent.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = recentAdapter
@@ -150,6 +124,23 @@ class HomeFragment : Fragment() {
         binding.btnSync.setOnClickListener {
             binding.btnSync.animate().rotation(binding.btnSync.rotation + 360f).setDuration(500).start()
             viewModel.sync()
+        }
+        binding.btnSync.setOnLongClickListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val deviceId = app.prefsStore.getDeviceId()
+                androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Your Device ID")
+                    .setMessage("Use this ID to log in on the web dashboard:\n\n$deviceId")
+                    .setPositiveButton("Copy") { _, _ ->
+                        val cm = requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                            as android.content.ClipboardManager
+                        cm.setPrimaryClip(android.content.ClipData.newPlainText("Device ID", deviceId))
+                        Toast.makeText(requireContext(), "Copied!", Toast.LENGTH_SHORT).show()
+                    }
+                    .setNegativeButton("Close", null)
+                    .show()
+            }
+            true
         }
         binding.tvSeeAll.setOnClickListener { (requireActivity() as MainActivity).showHistory() }
     }
@@ -216,20 +207,7 @@ class HomeFragment : Fragment() {
             binding.progressSync.visibility = if (syncing) View.VISIBLE else View.GONE
         }
 
-        viewModel.pendingTx.observe(viewLifecycleOwner) { pending ->
-            pending ?: return@observe
-            AlertDialog.Builder(requireContext())
-                .setTitle("${pending.source} detected")
-                .setMessage(
-                    "${pending.type.replaceFirstChar { it.uppercase() }}: ₹${String.format("%,.0f", pending.amount)}\n${pending.note}\n\nSave this transaction?"
-                )
-                .setPositiveButton("Save")    { _, _ -> viewModel.acceptPending() }
-                .setNegativeButton("Dismiss") { _, _ -> viewModel.dismissPending() }
-                .setCancelable(false)
-                .show()
-        }
-
-        viewModel.weeklyData.observe(viewLifecycleOwner) { data -> bindChart(data) }
+viewModel.weeklyData.observe(viewLifecycleOwner) { data -> bindChart(data) }
     }
 
     private fun bindSummary(s: Summary) {

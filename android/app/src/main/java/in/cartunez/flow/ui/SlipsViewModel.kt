@@ -4,10 +4,17 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.*
 import `in`.cartunez.flow.data.*
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-data class PartyWithBalance(val party: Party, val outstanding: Double, val slipCount: Int)
+data class PartyWithBalance(
+    val party: Party,
+    val outstanding: Double,
+    val slipCount: Int,
+    val totalSlipAmount: Double,
+    val totalCollected: Double
+)
 
 class SlipsViewModel(
     private val repo: SlipsRepository,
@@ -26,31 +33,44 @@ class SlipsViewModel(
     }
     val selectedPartyId: LiveData<String?> = _selectedPartyId
 
+    // Monthly report for a selected party
+    private val _monthlyReport = MutableLiveData<List<SlipsRepository.MonthlyPartyReport>>()
+    val monthlyReport: LiveData<List<SlipsRepository.MonthlyPartyReport>> = _monthlyReport
+
     init {
-        repo.observeParties().asLiveData().observeForever { parties ->
-            viewModelScope.launch {
-                _parties.value = parties.map { party ->
-                    val slips = repo.observeSlipsByParty(party.id).asLiveData().value
-                        ?: emptyList()
-                    val pending = slips.filter { it.status != SlipStatus.COLLECTED.name }
+        viewModelScope.launch {
+            combine(
+                repo.observeParties(),
+                repo.observePartyStats(),
+                repo.observeAllCollectionTotals()
+            ) { parties, stats, collected ->
+                val statsMap = stats.associateBy { it.partyId }
+                val collMap = collected.associateBy { it.partyId }
+                parties.map { party ->
+                    val s = statsMap[party.id]
                     PartyWithBalance(
                         party = party,
-                        outstanding = pending.sumOf { it.amount - it.amountPaid },
-                        slipCount = pending.size
+                        outstanding = s?.outstanding ?: 0.0,
+                        slipCount = s?.pendingCount ?: 0,
+                        totalSlipAmount = s?.totalAmount ?: 0.0,
+                        totalCollected = collMap[party.id]?.totalCollected ?: 0.0
                     )
                 }
-            }
+            }.collect { _parties.value = it }
         }
-        refreshParties()
     }
 
     fun refreshParties() = viewModelScope.launch {
-        // Force parties LiveData to re-emit with up-to-date balances
-        val allSlips = mutableMapOf<String, MutableList<Slip>>()
-        // Balances are derived from observeSlipsByParty — handled by observeForever above
+        // Balances are now derived reactively from combined flows in init
     }
 
     fun setParty(partyId: String?) { _selectedPartyId.value = partyId }
+
+    // ── Monthly report ────────────────────────────────────────────────────────
+
+    fun loadMonthlyReport(partyId: String) = viewModelScope.launch {
+        _monthlyReport.value = repo.getMonthlyReport(partyId)
+    }
 
     // ── Party management ─────────────────────────────────────────────────────
 
@@ -78,10 +98,8 @@ class SlipsViewModel(
         imageUri: Uri?,
         slip: Slip
     ) = viewModelScope.launch {
-        // Save image to internal storage
         val savedPath = imageUri?.let { repo.saveImage(context, it, slip.partyId) }
-
-        // Create a Purchase transaction
+        val slipWithImage = slip.copy(imageUri = savedPath)
         val tx = Transaction(
             amount = slip.amount,
             type   = "purchase",
@@ -89,9 +107,7 @@ class SlipsViewModel(
             date   = slip.date
         )
         txRepo.add(tx)
-
-        // Save slip as APPROVED
-        repo.approveSlip(slip.copy(imageUri = savedPath), tx.id)
+        repo.saveAndApproveSlip(slipWithImage, tx.id)
     }
 
     // ── Collection ────────────────────────────────────────────────────────────

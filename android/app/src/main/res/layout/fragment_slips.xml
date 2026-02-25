@@ -36,6 +36,65 @@
             android:focusable="true" />
     </LinearLayout>
 
+    <!-- Balance summary header -->
+    <LinearLayout
+        android:id="@+id/headerBalance"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="14dp"
+        android:background="@color/surface"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TOTAL OUTSTANDING"
+                android:textColor="@color/textSecondary"
+                android:textSize="9sp"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="3dp" />
+            <TextView
+                android:id="@+id/tvTotalOutstanding"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/red"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:text="&#8377;0" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="end">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PARTIES"
+                android:textColor="@color/textSecondary"
+                android:textSize="9sp"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="3dp" />
+            <TextView
+                android:id="@+id/tvPartyCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textPrimary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:text="0" />
+        </LinearLayout>
+    </LinearLayout>
+
     <TextView
         android:id="@+id/tvEmpty"
         android:layout_width="match_parent"

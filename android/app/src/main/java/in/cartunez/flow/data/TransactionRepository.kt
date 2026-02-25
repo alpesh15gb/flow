@@ -48,6 +48,37 @@ class TransactionRepository(
         return Summary(sales, expenses, purchases, sales - expenses - purchases)
     }
 
+    data class MonthReport(
+        val month: String,
+        val displayMonth: String,
+        val sales: Double, val salesCount: Int,
+        val expenses: Double, val expenseCount: Int,
+        val purchases: Double, val purchaseCount: Int,
+        val netProfit: Double
+    )
+
+    suspend fun getMonthlyReport(): List<MonthReport> {
+        val rows = dao.getMonthlyBreakdown()
+        return rows.groupBy { it.month }.entries
+            .sortedByDescending { it.key }
+            .map { (month, stats) ->
+                val s = stats.associateBy { it.type }
+                val sales = s["sale"]?.total ?: 0.0; val sc = s["sale"]?.count ?: 0
+                val expenses = s["expense"]?.total ?: 0.0; val ec = s["expense"]?.count ?: 0
+                val purchases = s["purchase"]?.total ?: 0.0; val pc = s["purchase"]?.count ?: 0
+                MonthReport(month, formatYearMonth(month), sales, sc, expenses, ec, purchases, pc,
+                    sales - expenses - purchases)
+            }
+    }
+
+    suspend fun getAllTimeSummary(): List<TypeCountSum> = dao.getAllTimeSummary()
+
+    private fun formatYearMonth(ym: String): String = try {
+        val parts = ym.split("-")
+        val months = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+        "${months[parts[1].toInt() - 1]} ${parts[0]}"
+    } catch (e: Exception) { ym }
+
     suspend fun sync(): SyncResult {
         val token   = prefs.getToken() ?: return SyncResult.NoAuth
         val bearer  = "Bearer $token"

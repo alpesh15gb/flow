@@ -17,6 +17,8 @@ class SlipAdapter(
     private val onLongClick: (Slip) -> Unit
 ) : ListAdapter<Slip, SlipAdapter.VH>(DIFF) {
 
+    var onClick: ((Slip) -> Unit)? = null
+
     inner class VH(private val b: ItemSlipBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(slip: Slip) {
             b.tvDate.text = slip.date
@@ -52,6 +54,7 @@ class SlipAdapter(
                 b.tvNote.text = "₹${String.format("%,.0f", remaining)} remaining"
             }
 
+            b.root.setOnClickListener { onClick?.invoke(slip) }
             b.root.setOnLongClickListener { onLongClick(slip); true }
         }
     }

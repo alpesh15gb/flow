@@ -3,6 +3,21 @@ package `in`.cartunez.flow.data
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
+data class PartyStats(
+    val partyId: String,
+    val outstanding: Double,
+    val pendingCount: Int,
+    val totalAmount: Double,
+    val totalSlips: Int
+)
+
+data class MonthlySlipStat(
+    val month: String,
+    val slipCount: Int,
+    val totalAmount: Double,
+    val collectedAmount: Double
+)
+
 @Dao
 interface SlipDao {
 
@@ -32,4 +47,24 @@ interface SlipDao {
 
     @Query("UPDATE slips SET synced = 1 WHERE id IN (:ids)")
     suspend fun markSynced(ids: List<String>)
+
+    @Query("""
+        SELECT partyId,
+               SUM(CASE WHEN status != 'COLLECTED' THEN amount - amountPaid ELSE 0.0 END) AS outstanding,
+               SUM(CASE WHEN status != 'COLLECTED' THEN 1 ELSE 0 END) AS pendingCount,
+               SUM(amount) AS totalAmount,
+               COUNT(*) AS totalSlips
+        FROM slips GROUP BY partyId
+    """)
+    fun observePartyStats(): Flow<List<PartyStats>>
+
+    @Query("""
+        SELECT substr(date, 1, 7) AS month,
+               COUNT(*) AS slipCount,
+               SUM(amount) AS totalAmount,
+               SUM(amountPaid) AS collectedAmount
+        FROM slips WHERE partyId = :partyId
+        GROUP BY substr(date, 1, 7) ORDER BY month DESC
+    """)
+    suspend fun getMonthlyStats(partyId: String): List<MonthlySlipStat>
 }

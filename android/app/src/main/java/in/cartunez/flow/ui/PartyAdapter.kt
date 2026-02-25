@@ -16,17 +16,20 @@ class PartyAdapter(
     inner class VH(private val b: ItemPartyBinding) : RecyclerView.ViewHolder(b.root) {
         fun bind(item: PartyWithBalance) {
             b.tvPartyName.text = item.party.name
-            b.tvSlipCount.text = if (item.slipCount == 0) "No pending slips"
-                                 else "${item.slipCount} pending slip${if (item.slipCount > 1) "s" else ""}"
-
+            b.tvSlipCount.text = when {
+                item.slipCount == 0 -> "All settled ✓"
+                item.slipCount == 1 -> "1 pending slip"
+                else -> "${item.slipCount} pending slips"
+            }
             if (item.outstanding > 0) {
-                b.tvOutstanding.text = "₹${String.format("%,.0f", item.outstanding)}"
+                b.tvOutstanding.text = "₹${String.format("%,.0f", item.outstanding)} due"
                 b.tvOutstanding.setTextColor(ContextCompat.getColor(b.root.context, R.color.red))
             } else {
-                b.tvOutstanding.text = "Settled"
+                b.tvOutstanding.text = "Settled ✓"
                 b.tvOutstanding.setTextColor(ContextCompat.getColor(b.root.context, R.color.green))
             }
-
+            b.tvTotalBilled.text = "₹${String.format("%,.0f", item.totalSlipAmount)}"
+            b.tvTotalCollected.text = "₹${String.format("%,.0f", item.totalCollected)}"
             b.root.setOnClickListener { onClick(item) }
         }
     }

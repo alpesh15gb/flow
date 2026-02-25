@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter
 
 class MainViewModel(
     private val repo: TransactionRepository,
+    private val slipsRepo: SlipsRepository,
     private val prefs: PrefsStore
 ) : ViewModel() {
 
@@ -28,11 +29,14 @@ class MainViewModel(
     private val _authState = MutableLiveData<AuthState>()
     val authState: LiveData<AuthState> = _authState
 
-    private val _pendingTx = MutableLiveData<PendingTransaction?>()
-    val pendingTx: LiveData<PendingTransaction?> = _pendingTx
-
-    private val _weeklyData = MutableLiveData<List<Pair<String, Double>>>()
+private val _weeklyData = MutableLiveData<List<Pair<String, Double>>>()
     val weeklyData: LiveData<List<Pair<String, Double>>> = _weeklyData
+
+    private val _txReport = MutableLiveData<List<TransactionRepository.MonthReport>>()
+    val txReport: LiveData<List<TransactionRepository.MonthReport>> = _txReport
+
+    private val _txAllTime = MutableLiveData<List<TypeCountSum>>()
+    val txAllTime: LiveData<List<TypeCountSum>> = _txAllTime
 
     init {
         checkAuth()
@@ -41,7 +45,12 @@ class MainViewModel(
     }
 
     private fun checkAuth() = viewModelScope.launch {
-        _authState.value = if (prefs.getToken() != null) AuthState.Authenticated else AuthState.NeedsAuth
+        if (prefs.getToken() != null) {
+            _authState.value = AuthState.Authenticated
+            sync() // Auto-sync on every app start
+        } else {
+            _authState.value = AuthState.NeedsAuth
+        }
     }
 
     fun authenticate(api: ApiService) = viewModelScope.launch {
@@ -51,6 +60,7 @@ class MainViewModel(
             val body = resp.body()!!
             prefs.saveAuth(body.token, body.user_id)
             _authState.value = AuthState.Authenticated
+            sync() // Auto-sync immediately after first auth
         } else {
             _authState.value = AuthState.Error("Running offline — could not reach server.")
         }
@@ -101,12 +111,14 @@ class MainViewModel(
         repo.add(tx)
         refreshSummary()
         refreshWeekly()
+        sync()
     }
 
     fun updateTransaction(tx: `in`.cartunez.flow.data.Transaction) = viewModelScope.launch {
         repo.update(tx)
         refreshSummary()
         refreshWeekly()
+        sync()
     }
 
     fun deleteTransaction(id: String) = viewModelScope.launch {
@@ -115,26 +127,14 @@ class MainViewModel(
         refreshWeekly()
     }
 
-    fun suggestTransaction(pending: PendingTransaction) {
-        _pendingTx.value = pending
+    fun loadTransactionReport() = viewModelScope.launch {
+        _txReport.value = repo.getMonthlyReport()
+        _txAllTime.value = repo.getAllTimeSummary()
     }
-
-    fun acceptPending() = viewModelScope.launch {
-        val p = _pendingTx.value ?: return@launch
-        repo.add(
-            `in`.cartunez.flow.data.Transaction(
-                amount = p.amount, type = p.type, note = p.note, date = LocalDate.now().toString()
-            )
-        )
-        _pendingTx.value = null
-        refreshSummary()
-        refreshWeekly()
-    }
-
-    fun dismissPending() { _pendingTx.value = null }
 
     fun sync() = viewModelScope.launch {
         _syncing.value = true
+        slipsRepo.sync()
         repo.sync()
         refreshSummary()
         refreshWeekly()
@@ -147,10 +147,3 @@ sealed class AuthState {
     object NeedsAuth     : AuthState()
     data class Error(val msg: String) : AuthState()
 }
-
-data class PendingTransaction(
-    val amount: Double,
-    val type: String,
-    val note: String,
-    val source: String
-)
