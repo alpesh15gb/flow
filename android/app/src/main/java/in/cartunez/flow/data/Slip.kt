@@ -28,6 +28,8 @@ data class Slip(
     val status: String = SlipStatus.REVIEW.name,
     val linkedTxId: String? = null,
     val note: String? = null,
+    val dueDate: String? = null,                // YYYY-MM-DD (for aging analysis)
+    val isPayable: Boolean = false,             // true=vendor, false=customer
     val synced: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )

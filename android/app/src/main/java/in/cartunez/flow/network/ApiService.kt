@@ -48,6 +48,54 @@ data class SlipsPullResponse(
     val server_time: String
 )
 
+// Business health DTOs
+data class DailyHealthResponse(
+    val sales: Double,
+    val expenses: Double,
+    val purchases: Double,
+    val profit: Double,
+    val collections_today: Double,
+    val outstanding: Double,
+    val overdue: Double,
+    val pending_today: Int,
+    val sync_status: SyncStatus
+)
+
+data class SyncStatus(
+    val last_synced: String,
+    val pending_unsynced: Int
+)
+
+data class MonthlyCloseResponse(
+    val sales: Double,
+    val expenses: Double,
+    val purchases: Double,
+    val profit: Double,
+    val slips_billed: Double,
+    val collections: Double,
+    val outstanding_total: Double,
+    val collection_rate: Double,
+    val dso: Int
+)
+
+data class PartyAging(
+    val partyId: String,
+    val partyName: String,
+    val total_outstanding: Double,
+    val buckets: AgingBuckets
+)
+
+data class AgingBuckets(
+    val current: Double,
+    val overdue_1_30: Double,
+    val overdue_30_60: Double,
+    val overdue_60_plus: Double
+)
+
+data class PartyAgingResponse(
+    val parties: List<PartyAging>
+)
+
 interface ApiService {
 
     @POST("auth/simple")
@@ -76,4 +124,21 @@ interface ApiService {
         @Header("Authorization") bearer: String,
         @Query("since") since: String?
     ): Response<SlipsPullResponse>
+
+    @GET("dashboard/daily-health")
+    suspend fun dailyHealth(
+        @Header("Authorization") bearer: String,
+        @Query("date") date: String?
+    ): Response<DailyHealthResponse>
+
+    @GET("dashboard/monthly-close")
+    suspend fun monthlyClose(
+        @Header("Authorization") bearer: String,
+        @Query("month") month: String
+    ): Response<MonthlyCloseResponse>
+
+    @GET("dashboard/party-aging")
+    suspend fun partyAging(
+        @Header("Authorization") bearer: String
+    ): Response<PartyAgingResponse>
 }

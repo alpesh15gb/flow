@@ -54,6 +54,12 @@ override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, saved
             binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
 
+        // Add link to Health tab for aging analysis
+        binding.btnManageParties.apply {
+            val originalText = text
+            text = "$originalText | View Aging →"
+        }
+
         binding.btnManageParties.setOnClickListener {
             requireActivity().supportFragmentManager
                 .beginTransaction()

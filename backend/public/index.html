@@ -146,6 +146,7 @@
   <div class="view-nav">
     <button class="view-tab active" onclick="switchView('cashflow', this)">Cashflow</button>
     <button class="view-tab"        onclick="switchView('slips', this)">Slip Tracker</button>
+    <button class="view-tab"        onclick="switchView('health', this)">Business Health</button>
   </div>
 
   <!-- Cashflow view -->
@@ -201,6 +202,63 @@
           <thead><tr><th>Party</th><th>Total Billed</th><th>Collected</th><th>Outstanding</th><th>Slips</th><th>Status</th></tr></thead>
           <tbody id="slips-body"><tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr></tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Business Health view -->
+  <div id="view-health" class="content" style="display:none">
+    <div class="tabs">
+      <button class="tab active" onclick="setHealthRange('daily', this)">Today</button>
+      <button class="tab"        onclick="setHealthRange('monthly', this)">This Month</button>
+      <button class="tab"        onclick="setHealthRange('aging', this)">Aging</button>
+    </div>
+
+    <!-- Daily Health -->
+    <div id="health-daily" style="display:block">
+      <div class="cards">
+        <div class="card"><div class="card-label">Sales</div><div class="card-value green" id="h-sales">—</div></div>
+        <div class="card"><div class="card-label">Expenses</div><div class="card-value red" id="h-expenses">—</div></div>
+        <div class="card"><div class="card-label">Purchases</div><div class="card-value blue" id="h-purchases">—</div></div>
+        <div class="card"><div class="card-label">Profit</div><div class="card-value" id="h-profit">—</div></div>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="card-label">Received Today</div><div class="card-value green" id="h-received">—</div></div>
+        <div class="card"><div class="card-label">Outstanding</div><div class="card-value red" id="h-outstanding">—</div></div>
+        <div class="card"><div class="card-label">Overdue</div><div class="card-value red" id="h-overdue">—</div></div>
+        <div class="card"><div class="card-label">Due Today</div><div class="card-value yellow" id="h-pending">—</div></div>
+      </div>
+    </div>
+
+    <!-- Monthly Close -->
+    <div id="health-monthly" style="display:none">
+      <div class="cards">
+        <div class="card"><div class="card-label">Sales</div><div class="card-value green" id="m-sales">—</div></div>
+        <div class="card"><div class="card-label">Expenses</div><div class="card-value red" id="m-expenses">—</div></div>
+        <div class="card"><div class="card-label">Purchases</div><div class="card-value blue" id="m-purchases">—</div></div>
+        <div class="card"><div class="card-label">Profit</div><div class="card-value" id="m-profit">—</div></div>
+      </div>
+      <div class="cards">
+        <div class="card"><div class="card-label">Billed</div><div class="card-value blue" id="m-billed">—</div></div>
+        <div class="card"><div class="card-label">Collected</div><div class="card-value green" id="m-collected">—</div></div>
+        <div class="card"><div class="card-label">Collection Rate</div><div class="card-value yellow" id="m-rate">—</div></div>
+        <div class="card"><div class="card-label">Days Outstanding</div><div class="card-value" id="m-dso">—</div></div>
+      </div>
+    </div>
+
+    <!-- Party Aging -->
+    <div id="health-aging" style="display:none">
+      <div class="section">
+        <div class="section-head">
+          <h2>Payment Aging by Party</h2>
+          <span style="font-size:0.75rem;color:var(--muted)">Sorted by overdue amount</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Party</th><th>Total Outstanding</th><th>Current</th><th>Overdue 1-30d</th><th>Overdue 30-60d</th><th>Overdue 60+d</th></tr></thead>
+            <tbody id="aging-body"><tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -342,7 +400,9 @@ function switchView(view, btn) {
   btn.classList.add('active');
   document.getElementById('view-cashflow').style.display = view === 'cashflow' ? '' : 'none';
   document.getElementById('view-slips').style.display    = view === 'slips'    ? '' : 'none';
+  document.getElementById('view-health').style.display   = view === 'health'   ? '' : 'none';
   if (view === 'slips') loadSlips();
+  if (view === 'health') loadDailyHealth();
 }
 
 function setRange(r, btn) {
@@ -504,6 +564,106 @@ async function showPartyReport(partyId, partyName) {
 }
 
 function closeModal() { document.getElementById('party-modal').classList.remove('open'); }
+
+// ── Business Health ───────────────────────────────────────────────────────────
+
+let currentHealthRange = 'daily';
+
+function setHealthRange(r, btn) {
+  currentHealthRange = r;
+  document.querySelectorAll('.tabs .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+
+  document.getElementById('health-daily').style.display   = r === 'daily'   ? 'block' : 'none';
+  document.getElementById('health-monthly').style.display = r === 'monthly' ? 'block' : 'none';
+  document.getElementById('health-aging').style.display   = r === 'aging'   ? 'block' : 'none';
+
+  if (r === 'daily') loadDailyHealth();
+  else if (r === 'monthly') loadMonthlyClose();
+  else if (r === 'aging') loadPartyAging();
+}
+
+async function loadDailyHealth() {
+  const today = localDate();
+  const data = await apiFetch(`/dashboard/daily-health?date=${today}`);
+  if (!data) {
+    ['h-sales','h-expenses','h-purchases','h-profit','h-received','h-outstanding','h-overdue','h-pending'].forEach(id => {
+      document.getElementById(id).textContent = 'Error';
+    });
+    return;
+  }
+  document.getElementById('h-sales').textContent = fmt(data.sales);
+  document.getElementById('h-expenses').textContent = fmt(data.expenses);
+  document.getElementById('h-purchases').textContent = fmt(data.purchases);
+  const profitEl = document.getElementById('h-profit');
+  profitEl.textContent = fmt(data.profit);
+  profitEl.className = 'card-value ' + (data.profit >= 0 ? 'green' : 'red');
+
+  document.getElementById('h-received').textContent = fmt(data.collections_today);
+  document.getElementById('h-outstanding').textContent = fmt(data.outstanding);
+  document.getElementById('h-overdue').textContent = fmt(data.overdue);
+  document.getElementById('h-pending').textContent = data.pending_today;
+}
+
+async function loadMonthlyClose() {
+  const today = localDate();
+  const month = today.substring(0, 7); // YYYY-MM
+  const data = await apiFetch(`/dashboard/monthly-close?month=${month}`);
+  if (!data) {
+    ['m-sales','m-expenses','m-purchases','m-profit','m-billed','m-collected','m-rate','m-dso'].forEach(id => {
+      document.getElementById(id).textContent = 'Error';
+    });
+    return;
+  }
+  document.getElementById('m-sales').textContent = fmt(data.sales);
+  document.getElementById('m-expenses').textContent = fmt(data.expenses);
+  document.getElementById('m-purchases').textContent = fmt(data.purchases);
+  const profitEl = document.getElementById('m-profit');
+  profitEl.textContent = fmt(data.profit);
+  profitEl.className = 'card-value ' + (data.profit >= 0 ? 'green' : 'red');
+
+  document.getElementById('m-billed').textContent = fmt(data.slips_billed);
+  document.getElementById('m-collected').textContent = fmt(data.collections);
+  const rateEl = document.getElementById('m-rate');
+  rateEl.textContent = Math.round(data.collection_rate * 100) + '%';
+  rateEl.className = 'card-value ' + (data.collection_rate >= 0.75 ? 'green' : data.collection_rate >= 0.5 ? 'yellow' : 'red');
+  document.getElementById('m-dso').textContent = data.dso + ' days';
+}
+
+async function loadPartyAging() {
+  document.getElementById('aging-body').innerHTML = '<tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr>';
+
+  const data = await apiFetch('/dashboard/party-aging');
+  if (!data || !data.parties) {
+    document.getElementById('aging-body').innerHTML = '<tr class="empty-row"><td colspan="6" style="color:var(--red)">Failed to load</td></tr>';
+    return;
+  }
+
+  const parties = data.parties.filter(p => p.total_outstanding > 0).sort((a, b) => {
+    // Sort by total overdue amount (overdue_1_30 + overdue_30_60 + overdue_60_plus)
+    const overdueA = a.buckets.overdue_1_30 + a.buckets.overdue_30_60 + a.buckets.overdue_60_plus;
+    const overdueB = b.buckets.overdue_1_30 + b.buckets.overdue_30_60 + b.buckets.overdue_60_plus;
+    return overdueB - overdueA;
+  });
+
+  if (!parties.length) {
+    document.getElementById('aging-body').innerHTML = '<tr class="empty-row"><td colspan="6">No outstanding payments</td></tr>';
+    return;
+  }
+
+  document.getElementById('aging-body').innerHTML = parties.map(p => {
+    const overdueTotal = p.buckets.overdue_1_30 + p.buckets.overdue_30_60 + p.buckets.overdue_60_plus;
+    const rowStyle = overdueTotal > 0 ? 'style="border-left:3px solid var(--red)"' : '';
+    return `<tr ${rowStyle}>
+      <td style="font-weight:600">${p.partyName}</td>
+      <td class="amount-cell">${fmt(p.total_outstanding)}</td>
+      <td class="amount-cell green">${fmt(p.buckets.current)}</td>
+      <td class="amount-cell red">${fmt(p.buckets.overdue_1_30)}</td>
+      <td class="amount-cell red">${fmt(p.buckets.overdue_30_60)}</td>
+      <td class="amount-cell red">${fmt(p.buckets.overdue_60_plus)}</td>
+    </tr>`;
+  }).join('');
+}
 
 // ── Refresh ───────────────────────────────────────────────────────────────────
 

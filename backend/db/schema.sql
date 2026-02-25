@@ -56,6 +56,8 @@ CREATE TABLE IF NOT EXISTS slips (
   status       TEXT NOT NULL,
   linked_tx_id TEXT,
   note         TEXT,
+  due_date     DATE,
+  is_payable   BOOLEAN NOT NULL DEFAULT false,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -74,5 +76,7 @@ CREATE TABLE IF NOT EXISTS slip_collections (
 CREATE INDEX IF NOT EXISTS idx_parties_user_updated       ON parties(user_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_slips_user_updated         ON slips(user_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_slips_party                ON slips(party_id);
+CREATE INDEX IF NOT EXISTS idx_slips_due_date             ON slips(user_id, due_date) WHERE due_date IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_slips_status               ON slips(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_slip_collections_user      ON slip_collections(user_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_slip_collections_party     ON slip_collections(party_id);

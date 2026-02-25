@@ -31,7 +31,10 @@ import `in`.cartunez.flow.data.Summary
 import `in`.cartunez.flow.data.Transaction
 import `in`.cartunez.flow.data.TransactionRepository
 import `in`.cartunez.flow.databinding.FragmentHomeBinding
+import `in`.cartunez.flow.network.DailyHealthResponse
+import java.time.LocalDate
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 class HomeFragment : Fragment() {
 
@@ -49,6 +52,7 @@ class HomeFragment : Fragment() {
     private lateinit var recentAdapter: TransactionAdapter
     private var activeTab = "daily"
     private var showSyncToast = false
+    private var dailyHealth: DailyHealthResponse? = null
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -62,9 +66,26 @@ class HomeFragment : Fragment() {
         setupTabs()
         setupButtons()
         setupChart()
+        loadDailyHealth()
         observeViewModel()
         binding.root.alpha = 0f
         binding.root.animate().alpha(1f).setDuration(250).start()
+    }
+
+    private fun loadDailyHealth() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val token = app.prefsStore.getToken() ?: return@launch
+                val today = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
+                val response = app.apiService.dailyHealth("Bearer $token", today)
+                if (response.isSuccessful && response.body() != null) {
+                    dailyHealth = response.body()!!
+                    updateCollectionsCard()
+                }
+            } catch (e: Exception) {
+                // Silently fail - health data is optional
+            }
+        }
     }
 
 private fun setupGreeting() {
@@ -223,6 +244,18 @@ private fun setupGreeting() {
         }
 
 viewModel.weeklyData.observe(viewLifecycleOwner) { data -> bindChart(data) }
+    }
+
+    private fun updateCollectionsCard() {
+        if (dailyHealth != null) {
+            val h = dailyHealth!!
+            binding.tvCollectionsToday.text = "₹" + String.format("%,.0f", h.collections_today)
+            binding.tvOutstanding.text = "₹" + String.format("%,.0f", h.outstanding)
+            binding.tvOverdue.text = "₹" + String.format("%,.0f", h.overdue)
+            binding.collectionsCard.visibility = View.VISIBLE
+        } else {
+            binding.collectionsCard.visibility = View.GONE
+        }
     }
 
     private fun bindSummary(s: Summary) {
