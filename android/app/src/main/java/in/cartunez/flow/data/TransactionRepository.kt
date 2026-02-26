@@ -73,6 +73,14 @@ class TransactionRepository(
 
     suspend fun getAllTimeSummary(): List<TypeCountSum> = dao.getAllTimeSummary()
 
+    suspend fun dailyCategoryBreakdown(date: LocalDate): List<TypeCategorySum> =
+        dao.dailyCategoryBreakdown(date.format(fmt))
+
+    suspend fun monthlyCategoryBreakdown(date: LocalDate): List<TypeCategorySum> {
+        val prefix = date.format(DateTimeFormatter.ofPattern("yyyy-MM"))
+        return dao.monthlyCategoryBreakdown(prefix)
+    }
+
     private fun formatYearMonth(ym: String): String = try {
         val parts = ym.split("-")
         val months = listOf("Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
@@ -87,7 +95,7 @@ class TransactionRepository(
         val unsynced = dao.getUnsynced()
         if (unsynced.isNotEmpty()) {
             val remote = unsynced.map {
-                RemoteTransaction(it.id, it.amount, it.type, it.note, it.date, deviceId, null, null)
+                RemoteTransaction(it.id, it.amount, it.type, it.note, it.date, it.category, deviceId, null, null)
             }
             val resp = runCatching { api.push(bearer, PushRequest(remote)) }.getOrNull()
             if (resp?.isSuccessful == true) dao.markSynced(unsynced.map { it.id })
@@ -99,7 +107,7 @@ class TransactionRepository(
             val body = pull.body()!!
             val incoming = body.transactions.map {
                 Transaction(id = it.id, amount = it.amount, type = it.type,
-                    note = it.note, date = it.date, synced = true)
+                    note = it.note, date = it.date, category = it.category, synced = true)
             }
             if (incoming.isNotEmpty()) dao.insertAll(incoming)
             prefs.saveLastSync(body.server_time)

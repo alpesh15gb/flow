@@ -30,7 +30,8 @@ class TransactionAdapter : ListAdapter<Transaction, TransactionAdapter.VH>(DIFF)
             b.tvAmount.text = "₹${String.format("%,.0f", tx.amount)}"
             b.tvAmount.setTextColor(ContextCompat.getColor(b.root.context, amountColor))
             b.tvNote.text = tx.note?.ifBlank { null } ?: tx.type.replaceFirstChar { it.uppercase() }
-            b.tvType.text = tx.type.replaceFirstChar { it.uppercase() }
+            val typeLabel = tx.type.replaceFirstChar { it.uppercase() }
+            b.tvType.text = if (tx.category != null) "$typeLabel · ${tx.category}" else typeLabel
             b.tvDate.text = tx.date
 
             b.root.setOnClickListener { onClick?.invoke(tx) }

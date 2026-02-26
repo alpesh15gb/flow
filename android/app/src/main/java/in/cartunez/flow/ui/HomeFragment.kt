@@ -1,6 +1,7 @@
 package `in`.cartunez.flow.ui
 
 import android.animation.ValueAnimator
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
@@ -213,7 +214,10 @@ private fun setupGreeting() {
         viewModel.authState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is AuthState.Authenticated -> {}
-                is AuthState.NeedsAuth     -> viewModel.authenticate(app.apiService)
+                is AuthState.NeedsAuth     -> {
+                    startActivity(Intent(requireContext(), LoginActivity::class.java))
+                    requireActivity().finish()
+                }
                 is AuthState.Error         -> Toast.makeText(requireContext(), state.msg, Toast.LENGTH_LONG).show()
             }
         }
@@ -312,9 +316,9 @@ viewModel.weeklyData.observe(viewLifecycleOwner) { data -> bindChart(data) }
 
     private fun showAddDialog(type: String) {
         val dialog = AddTransactionDialog.newInstance(type)
-        dialog.onSave = { amount, note, date ->
+        dialog.onSave = { amount, note, date, category ->
             viewModel.addTransaction(
-                Transaction(amount = amount, type = type, note = note.ifBlank { null }, date = date)
+                Transaction(amount = amount, type = type, note = note.ifBlank { null }, date = date, category = category)
             )
         }
         dialog.show(parentFragmentManager, "add_tx")
@@ -322,8 +326,8 @@ viewModel.weeklyData.observe(viewLifecycleOwner) { data -> bindChart(data) }
 
     private fun showEditDialog(tx: Transaction) {
         val dialog = AddTransactionDialog.newInstanceEdit(tx)
-        dialog.onSave = { amount, note, date ->
-            viewModel.updateTransaction(tx.copy(amount = amount, note = note.ifBlank { null }, date = date))
+        dialog.onSave = { amount, note, date, category ->
+            viewModel.updateTransaction(tx.copy(amount = amount, note = note.ifBlank { null }, date = date, category = category))
         }
         dialog.show(parentFragmentManager, "edit_tx")
     }

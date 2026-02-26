@@ -119,13 +119,31 @@
 <div id="login-screen">
   <div class="login-box">
     <h1>Flow</h1>
-    <p>Cashflow dashboard — sign in with your Device ID</p>
-    <div class="login-hint">
-      📱 Find your Device ID: Open the Android app → Long-press the <strong>↻ Sync</strong> button → tap <strong>Copy</strong>
+    <p>Cashflow dashboard</p>
+
+    <!-- Tab toggle for login method -->
+    <div class="tabs" style="margin-bottom:1rem;width:100%">
+      <button class="tab active" onclick="setLoginMode('password',this)">Username</button>
+      <button class="tab" onclick="setLoginMode('device',this)">Device ID</button>
     </div>
-    <input id="inp-device" type="text" placeholder="Device ID" autocomplete="off">
-    <input id="inp-name"   type="text" placeholder="Your name (optional)" autocomplete="off">
-    <button class="btn-primary" onclick="login()">Sign In</button>
+
+    <!-- Username/password login -->
+    <div id="login-password">
+      <input id="inp-username" type="text" placeholder="Username" autocomplete="username">
+      <input id="inp-password" type="password" placeholder="Password" autocomplete="current-password">
+      <button class="btn-primary" onclick="loginPassword()">Login</button>
+    </div>
+
+    <!-- Device ID login (legacy) -->
+    <div id="login-device" style="display:none">
+      <div class="login-hint">
+        📱 Find your Device ID: Open the Android app → Long-press the <strong>↻ Sync</strong> button → tap <strong>Copy</strong>
+      </div>
+      <input id="inp-device" type="text" placeholder="Device ID" autocomplete="off">
+      <input id="inp-name"   type="text" placeholder="Your name (optional)" autocomplete="off">
+      <button class="btn-primary" onclick="login()">Sign In</button>
+    </div>
+
     <p class="err" id="login-err"></p>
   </div>
 </div>
@@ -177,8 +195,21 @@
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Note</th><th>Device</th></tr></thead>
-          <tbody id="tx-body"><tr><td colspan="5" class="loading"><span class="spinner"></span>Loading…</td></tr></tbody>
+          <thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount</th><th>Note</th><th>Device</th></tr></thead>
+          <tbody id="tx-body"><tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="section">
+      <div class="section-head">
+        <h2>Category Breakdown</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Category</th><th>Amount</th><th>Count</th></tr></thead>
+          <tbody id="cat-body"><tr><td colspan="4" class="loading"><span class="spinner"></span>Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -354,6 +385,38 @@ async function apiFetch(path, opts = {}, retries = 2) {
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 
+function setLoginMode(mode, btn) {
+  document.querySelectorAll('#login-screen .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('login-password').style.display = mode === 'password' ? '' : 'none';
+  document.getElementById('login-device').style.display   = mode === 'device'   ? '' : 'none';
+  document.getElementById('login-err').style.display = 'none';
+}
+
+async function loginPassword() {
+  const username = document.getElementById('inp-username').value.trim();
+  const password = document.getElementById('inp-password').value;
+  const err = document.getElementById('login-err');
+  err.style.display = 'none';
+  if (!username || !password) { err.textContent = 'Username and password required'; err.style.display = 'block'; return; }
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (!res.ok) { err.textContent = data.error || 'Login failed'; err.style.display = 'block'; return; }
+    token = data.token;
+    deviceId = data.username || username;
+    localStorage.setItem('flow_token', token);
+    localStorage.setItem('flow_device', deviceId);
+    showApp(username);
+  } catch (e) {
+    err.textContent = 'Connection failed — check your internet'; err.style.display = 'block';
+  }
+}
+
 async function login() {
   const id   = document.getElementById('inp-device').value.trim();
   const name = document.getElementById('inp-name').value.trim();
@@ -410,6 +473,7 @@ function setRange(r, btn) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   btn.classList.add('active');
   loadSummary();
+  loadCategoryBreakdown();
 }
 
 // ── Cashflow ─────────────────────────────────────────────────────────────────
@@ -435,24 +499,42 @@ async function loadSummary() {
 async function loadTransactions() {
   const type  = document.getElementById('type-filter').value;
   const tbody = document.getElementById('tx-body');
-  tbody.innerHTML = '<tr><td colspan="5" class="loading"><span class="spinner"></span>Loading…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="loading"><span class="spinner"></span>Loading…</td></tr>';
 
   const data = await apiFetch(`/dashboard/transactions?limit=50&type=${type}`);
   if (!data) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="5" style="color:var(--red)">Failed to load — tap ↻ to retry</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6" style="color:var(--red)">Failed to load — tap ↻ to retry</td></tr>';
     return;
   }
   if (!data.transactions.length) {
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No transactions found</td></tr>';
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">No transactions found</td></tr>';
     return;
   }
   tbody.innerHTML = data.transactions.map(t => `
     <tr>
       <td>${t.date}</td>
       <td><span class="badge badge-${t.type}">${t.type}</span></td>
+      <td style="color:var(--muted);font-size:0.8rem">${t.category || 'Uncategorized'}</td>
       <td class="amount-cell">${fmt(t.amount)}</td>
       <td class="note-cell">${t.note || '—'}</td>
       <td style="color:var(--muted);font-size:0.8rem">${t.device_id ? t.device_id.slice(0,8)+'…' : '—'}</td>
+    </tr>`).join('');
+}
+
+async function loadCategoryBreakdown() {
+  const today = localDate();
+  const data = await apiFetch(`/dashboard/category-breakdown?range=${currentRange}&date=${today}`);
+  const tbody = document.getElementById('cat-body');
+  if (!data || !data.breakdown || !data.breakdown.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No data</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.breakdown.map(r => `
+    <tr>
+      <td><span class="badge badge-${r.type}">${r.type}</span></td>
+      <td style="font-weight:600">${r.category}</td>
+      <td class="amount-cell">${fmt(r.total)}</td>
+      <td style="color:var(--muted)">${r.count}</td>
     </tr>`).join('');
 }
 
@@ -670,7 +752,7 @@ async function loadPartyAging() {
 async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.classList.add('spinning');
-  await Promise.all([loadSummary(), loadTransactions(), loadCharts()]);
+  await Promise.all([loadSummary(), loadTransactions(), loadCharts(), loadCategoryBreakdown()]);
   btn.classList.remove('spinning');
   lastUpdated = Date.now();
   document.getElementById('updated-label').textContent = 'Updated just now';
@@ -700,7 +782,7 @@ setInterval(() => {
 // Auto-refresh every 60 seconds
 setInterval(() => {
   if (!token) return;
-  loadSummary(); loadTransactions(); loadCharts();
+  loadSummary(); loadTransactions(); loadCharts(); loadCategoryBreakdown();
   if (currentView === 'slips') loadSlips();
   lastUpdated = Date.now();
 }, 60000);

@@ -22,23 +22,24 @@ router.post('/push', requireAuth, async (req, res) => {
 
     let synced = 0;
     for (const t of batch) {
-      const { id, amount, type, note, date } = t;
+      const { id, amount, type, note, date, category } = t;
 
       if (!id || !amount || !type || !date) continue;
       if (!['sale', 'expense', 'purchase'].includes(type)) continue;
       if (isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) continue;
 
       await client.query(
-        `INSERT INTO transactions (id, user_id, device_id, amount, type, note, date, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+        `INSERT INTO transactions (id, user_id, device_id, amount, type, note, date, category, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
          ON CONFLICT (id) DO UPDATE SET
            amount = EXCLUDED.amount,
            type   = EXCLUDED.type,
            note   = EXCLUDED.note,
            date   = EXCLUDED.date,
+           category = EXCLUDED.category,
            updated_at = NOW()
          WHERE transactions.user_id = $2`,
-        [id, user_id, device_id, parseFloat(amount), type, note || null, date]
+        [id, user_id, device_id, parseFloat(amount), type, note || null, date, category || null]
       );
       synced++;
     }
@@ -67,7 +68,7 @@ router.get('/pull', requireAuth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT id, amount, type, note, date, device_id, created_at, updated_at
+      `SELECT id, amount, type, note, date, category, device_id, created_at, updated_at
        FROM transactions
        WHERE user_id = $1 AND updated_at > $2
        ORDER BY updated_at ASC

@@ -17,17 +17,22 @@ class PrefsStore(private val ctx: Context) {
         private val KEY_USER_ID   = stringPreferencesKey("user_id")
         private val KEY_DEVICE_ID = stringPreferencesKey("device_id")
         private val KEY_LAST_SYNC = stringPreferencesKey("last_sync")
+        private val KEY_USERNAME  = stringPreferencesKey("username")
     }
 
     suspend fun getToken(): String? =
         ctx.dataStore.data.map { it[KEY_TOKEN] }.first()
 
-    suspend fun saveAuth(token: String, userId: String) {
+    suspend fun saveAuth(token: String, userId: String, username: String? = null) {
         ctx.dataStore.edit {
             it[KEY_TOKEN]   = token
             it[KEY_USER_ID] = userId
+            if (username != null) it[KEY_USERNAME] = username
         }
     }
+
+    suspend fun getUsername(): String? =
+        ctx.dataStore.data.map { it[KEY_USERNAME] }.first()
 
     suspend fun getDeviceId(): String {
         val existing = ctx.dataStore.data.map { it[KEY_DEVICE_ID] }.first()

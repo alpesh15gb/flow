@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -14,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import `in`.cartunez.flow.FlowApp
 import `in`.cartunez.flow.R
 import `in`.cartunez.flow.data.TransactionRepository
+import `in`.cartunez.flow.data.TypeCategorySum
 import `in`.cartunez.flow.databinding.FragmentTransactionReportBinding
 import `in`.cartunez.flow.databinding.ItemMonthlyTxReportBinding
 
@@ -61,7 +64,16 @@ class TransactionReportFragment : Fragment() {
             binding.tvEmpty.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         }
 
+        val catAdapter = CategoryBreakdownAdapter()
+        binding.rvCategory.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvCategory.adapter = catAdapter
+
+        viewModel.categoryBreakdown.observe(viewLifecycleOwner) { list ->
+            catAdapter.submitList(list)
+        }
+
         viewModel.loadTransactionReport()
+        viewModel.loadCategoryBreakdown("monthly")
     }
 
     override fun onDestroyView() {
@@ -99,6 +111,70 @@ class MonthlyTxReportAdapter : ListAdapter<TransactionRepository.MonthReport, Mo
         val DIFF = object : DiffUtil.ItemCallback<TransactionRepository.MonthReport>() {
             override fun areItemsTheSame(a: TransactionRepository.MonthReport, b: TransactionRepository.MonthReport) = a.month == b.month
             override fun areContentsTheSame(a: TransactionRepository.MonthReport, b: TransactionRepository.MonthReport) = a == b
+        }
+    }
+}
+
+class CategoryBreakdownAdapter : ListAdapter<TypeCategorySum, CategoryBreakdownAdapter.VH>(DIFF) {
+
+    inner class VH(private val layout: LinearLayout) : RecyclerView.ViewHolder(layout) {
+        fun bind(item: TypeCategorySum) {
+            val tvType = layout.getChildAt(0) as TextView
+            val tvCat  = layout.getChildAt(1) as TextView
+            val tvAmt  = layout.getChildAt(2) as TextView
+
+            val color = when (item.type) {
+                "sale"     -> R.color.green
+                "expense"  -> R.color.red
+                "purchase" -> R.color.blue
+                else       -> R.color.textSecondary
+            }
+            tvType.text = item.type.replaceFirstChar { it.uppercase() }
+            tvType.setTextColor(ContextCompat.getColor(layout.context, color))
+            tvCat.text = item.category
+            tvAmt.text = "₹${String.format("%,.0f", item.total)} (${item.count})"
+            tvAmt.setTextColor(ContextCompat.getColor(layout.context, color))
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+        val layout = LinearLayout(parent.context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = RecyclerView.LayoutParams(
+                RecyclerView.LayoutParams.MATCH_PARENT,
+                RecyclerView.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = 8
+            }
+            setPadding(12, 10, 12, 10)
+            background = ContextCompat.getDrawable(parent.context, R.drawable.bg_tx_item)
+        }
+        val tvType = TextView(parent.context).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            textSize = 12f
+        }
+        val tvCat = TextView(parent.context).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.5f)
+            textSize = 13f
+            setTextColor(ContextCompat.getColor(parent.context, R.color.textPrimary))
+        }
+        val tvAmt = TextView(parent.context).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            textSize = 13f
+            textAlignment = View.TEXT_ALIGNMENT_VIEW_END
+        }
+        layout.addView(tvType)
+        layout.addView(tvCat)
+        layout.addView(tvAmt)
+        return VH(layout)
+    }
+
+    override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(getItem(position))
+
+    companion object {
+        val DIFF = object : DiffUtil.ItemCallback<TypeCategorySum>() {
+            override fun areItemsTheSame(a: TypeCategorySum, b: TypeCategorySum) = a.type == b.type && a.category == b.category
+            override fun areContentsTheSame(a: TypeCategorySum, b: TypeCategorySum) = a == b
         }
     }
 }

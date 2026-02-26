@@ -67,8 +67,8 @@ class HistoryFragment : Fragment() {
 
     private fun showEditDialog(tx: Transaction) {
         val dialog = AddTransactionDialog.newInstanceEdit(tx)
-        dialog.onSave = { amount, note, date ->
-            viewModel.updateTransaction(tx.copy(amount = amount, note = note.ifBlank { null }, date = date))
+        dialog.onSave = { amount, note, date, category ->
+            viewModel.updateTransaction(tx.copy(amount = amount, note = note.ifBlank { null }, date = date, category = category))
         }
         dialog.show(parentFragmentManager, "edit_tx")
     }

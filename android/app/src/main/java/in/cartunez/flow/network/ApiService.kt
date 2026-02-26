@@ -6,12 +6,17 @@ import retrofit2.http.*
 data class AuthRequest(val device_id: String, val name: String?)
 data class AuthResponse(val token: String, val user_id: String)
 
+data class RegisterRequest(val username: String, val password: String, val name: String?, val device_id: String?)
+data class LoginRequest(val username: String, val password: String, val device_id: String?)
+data class LoginResponse(val token: String, val user_id: String, val username: String?)
+
 data class RemoteTransaction(
     val id: String,
     val amount: Double,
     val type: String,
     val note: String?,
     val date: String,
+    val category: String? = null,
     val device_id: String?,
     val created_at: String?,
     val updated_at: String?
@@ -96,10 +101,27 @@ data class PartyAgingResponse(
     val parties: List<PartyAging>
 )
 
+data class CategoryBreakdownItem(
+    val type: String,
+    val category: String,
+    val total: Double,
+    val count: Int
+)
+
+data class CategoryBreakdownResponse(
+    val breakdown: List<CategoryBreakdownItem>
+)
+
 interface ApiService {
 
     @POST("auth/simple")
     suspend fun auth(@Body body: AuthRequest): Response<AuthResponse>
+
+    @POST("auth/register")
+    suspend fun register(@Body body: RegisterRequest): Response<LoginResponse>
+
+    @POST("auth/login")
+    suspend fun login(@Body body: LoginRequest): Response<LoginResponse>
 
     @POST("sync/push")
     suspend fun push(
@@ -141,4 +163,11 @@ interface ApiService {
     suspend fun partyAging(
         @Header("Authorization") bearer: String
     ): Response<PartyAgingResponse>
+
+    @GET("dashboard/category-breakdown")
+    suspend fun categoryBreakdown(
+        @Header("Authorization") bearer: String,
+        @Query("range") range: String,
+        @Query("date") date: String?
+    ): Response<CategoryBreakdownResponse>
 }

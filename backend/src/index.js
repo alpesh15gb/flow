@@ -20,7 +20,8 @@ app.get('/health', (req, res) => res.json({ status: 'ok', time: new Date().toISO
 app.use('/api/auth',      require('./routes/auth'));
 app.use('/api/sync',      require('./routes/sync'));
 app.use('/api/slips',     require('./routes/slips'));
-app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/dashboard',   require('./routes/dashboard'));
+app.use('/api/categories',  require('./routes/categories'));
 
 // Web dashboard — serve static files
 app.use('/dashboard', express.static(path.join(__dirname, '..', 'public')));

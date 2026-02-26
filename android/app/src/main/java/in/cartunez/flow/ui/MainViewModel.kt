@@ -2,8 +2,6 @@ package `in`.cartunez.flow.ui
 
 import androidx.lifecycle.*
 import `in`.cartunez.flow.data.*
-import `in`.cartunez.flow.network.ApiService
-import `in`.cartunez.flow.network.AuthRequest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalTime
@@ -42,6 +40,9 @@ private val _weeklyData = MutableLiveData<List<Pair<String, Double>>>()
     private val _txAllTime = MutableLiveData<List<TypeCountSum>>()
     val txAllTime: LiveData<List<TypeCountSum>> = _txAllTime
 
+    private val _categoryBreakdown = MutableLiveData<List<TypeCategorySum>>()
+    val categoryBreakdown: LiveData<List<TypeCategorySum>> = _categoryBreakdown
+
     init {
         checkAuth()
         refreshSummary()
@@ -57,17 +58,9 @@ private val _weeklyData = MutableLiveData<List<Pair<String, Double>>>()
         }
     }
 
-    fun authenticate(api: ApiService) = viewModelScope.launch {
-        val deviceId = prefs.getDeviceId()
-        val resp = runCatching { api.auth(AuthRequest(deviceId, null)) }.getOrNull()
-        if (resp?.isSuccessful == true) {
-            val body = resp.body()!!
-            prefs.saveAuth(body.token, body.user_id)
-            _authState.value = AuthState.Authenticated
-            sync() // Auto-sync immediately after first auth
-        } else {
-            _authState.value = AuthState.Error("Running offline — could not reach server.")
-        }
+    fun markAuthenticated() {
+        _authState.value = AuthState.Authenticated
+        sync()
     }
 
     fun setRange(range: String) {
@@ -134,6 +127,15 @@ private val _weeklyData = MutableLiveData<List<Pair<String, Double>>>()
     fun loadTransactionReport() = viewModelScope.launch {
         _txReport.value = repo.getMonthlyReport()
         _txAllTime.value = repo.getAllTimeSummary()
+    }
+
+    fun loadCategoryBreakdown(range: String = "daily") = viewModelScope.launch {
+        val today = LocalDate.now()
+        _categoryBreakdown.value = if (range == "monthly") {
+            repo.monthlyCategoryBreakdown(today)
+        } else {
+            repo.dailyCategoryBreakdown(today)
+        }
     }
 
     fun sync() = viewModelScope.launch {

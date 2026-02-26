@@ -2,12 +2,14 @@
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- Users (device-based, no passwords)
+-- Users (username/password + optional device-based)
 CREATE TABLE IF NOT EXISTS users (
-  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  device_id   TEXT NOT NULL UNIQUE,
-  name        TEXT,
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  device_id     TEXT,
+  username      TEXT UNIQUE,
+  password_hash TEXT,
+  name          TEXT,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Businesses (one per user for now, extensible)
@@ -27,14 +29,28 @@ CREATE TABLE IF NOT EXISTS transactions (
   type        TEXT NOT NULL CHECK (type IN ('sale', 'expense', 'purchase')),
   note        TEXT,
   date        DATE NOT NULL,
+  category    TEXT,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- User-defined custom categories
+CREATE TABLE IF NOT EXISTS categories (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name        TEXT NOT NULL,
+  type        TEXT NOT NULL CHECK (type IN ('expense', 'sale', 'purchase')),
+  is_default  BOOLEAN NOT NULL DEFAULT false,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Index for fast sync queries
 CREATE INDEX IF NOT EXISTS idx_transactions_user_updated ON transactions(user_id, updated_at);
 CREATE INDEX IF NOT EXISTS idx_transactions_user_date    ON transactions(user_id, date DESC);
-CREATE INDEX IF NOT EXISTS idx_users_device              ON users(device_id);
+CREATE INDEX IF NOT EXISTS idx_users_device              ON users(device_id) WHERE device_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_users_username            ON users(username) WHERE username IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_transactions_category     ON transactions(user_id, category);
+CREATE INDEX IF NOT EXISTS idx_categories_user           ON categories(user_id);
 
 -- Slip tracker: parties
 CREATE TABLE IF NOT EXISTS parties (

@@ -123,6 +123,23 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Category Breakdown -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="CATEGORY BREAKDOWN"
+                android:textColor="@color/textSecondary"
+                android:textSize="10sp"
+                android:letterSpacing="0.1"
+                android:paddingBottom="10dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="20dp" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

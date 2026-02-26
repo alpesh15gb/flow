@@ -13,6 +13,7 @@ data class Transaction(
     val type: String,           // TxType.name
     val note: String? = null,
     val date: String,           // YYYY-MM-DD
+    val category: String? = null,
     val synced: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )

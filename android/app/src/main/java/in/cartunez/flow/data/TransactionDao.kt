@@ -55,6 +55,20 @@ interface TransactionDao {
 
     @Query("SELECT type, SUM(amount) AS total, COUNT(*) AS count FROM transactions GROUP BY type")
     suspend fun getAllTimeSummary(): List<TypeCountSum>
+
+    @Query("""
+        SELECT type, COALESCE(category, 'Uncategorized') AS category, SUM(amount) AS total, COUNT(*) AS count
+        FROM transactions WHERE date = :date
+        GROUP BY type, category ORDER BY type, total DESC
+    """)
+    suspend fun dailyCategoryBreakdown(date: String): List<TypeCategorySum>
+
+    @Query("""
+        SELECT type, COALESCE(category, 'Uncategorized') AS category, SUM(amount) AS total, COUNT(*) AS count
+        FROM transactions WHERE date LIKE :monthPrefix || '%'
+        GROUP BY type, category ORDER BY type, total DESC
+    """)
+    suspend fun monthlyCategoryBreakdown(monthPrefix: String): List<TypeCategorySum>
 }
 
 data class TypeSum(val type: String, val total: Double)
@@ -62,3 +76,5 @@ data class TypeSum(val type: String, val total: Double)
 data class MonthlyTypeStat(val month: String, val type: String, val total: Double, val count: Int)
 
 data class TypeCountSum(val type: String, val total: Double, val count: Int)
+
+data class TypeCategorySum(val type: String, val category: String, val total: Double, val count: Int)

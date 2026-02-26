@@ -57,7 +57,7 @@ router.get('/transactions', requireAuth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT id, amount, type, note, date, device_id, created_at
+      `SELECT id, amount, type, note, date, category, device_id, created_at
        FROM transactions
        WHERE user_id = $1 ${typeFilter}
        ORDER BY date DESC, created_at DESC
@@ -371,6 +371,49 @@ router.get('/party-aging', requireAuth, async (req, res) => {
     res.json({ parties });
   } catch (err) {
     console.error('dashboard/party-aging error:', err.message);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GET /api/dashboard/category-breakdown?range=daily|monthly&date=YYYY-MM-DD
+// Returns: { breakdown: [{type, category, total, count}] }
+router.get('/category-breakdown', requireAuth, async (req, res) => {
+  const { range = 'daily', date } = req.query;
+  const user_id = req.user.user_id;
+  const target = date ? new Date(date) : new Date();
+  const date_str = target.toISOString().split('T')[0];
+
+  let dateFilter;
+  if (range === 'monthly') {
+    dateFilter = `DATE_TRUNC('month', date) = DATE_TRUNC('month', $2::date)`;
+  } else {
+    dateFilter = `date = $2::date`;
+  }
+
+  try {
+    const result = await pool.query(
+      `SELECT
+         type,
+         COALESCE(category, 'Uncategorized') AS category,
+         SUM(amount) AS total,
+         COUNT(*) AS count
+       FROM transactions
+       WHERE user_id = $1 AND ${dateFilter}
+       GROUP BY type, category
+       ORDER BY type, total DESC`,
+      [user_id, date_str]
+    );
+
+    res.json({
+      breakdown: result.rows.map(r => ({
+        type: r.type,
+        category: r.category,
+        total: parseFloat(r.total),
+        count: parseInt(r.count)
+      }))
+    });
+  } catch (err) {
+    console.error('dashboard/category-breakdown error:', err.message);
     res.status(500).json({ error: 'Server error' });
   }
 });

@@ -9,8 +9,10 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.chip.Chip
 import com.google.android.material.datepicker.MaterialDatePicker
 import `in`.cartunez.flow.R
+import `in`.cartunez.flow.data.DefaultCategories
 import `in`.cartunez.flow.data.Transaction
 import `in`.cartunez.flow.databinding.DialogAddTransactionBinding
 import java.time.Instant
@@ -24,17 +26,19 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
     private var _binding: DialogAddTransactionBinding? = null
     private val binding get() = _binding!!
 
-    var onSave: ((amount: Double, note: String, date: String) -> Unit)? = null
+    var onSave: ((amount: Double, note: String, date: String, category: String?) -> Unit)? = null
 
     private var selectedDate = LocalDate.now()
     private var selectedType = "sale"
+    private var selectedCategory: String? = null
 
     companion object {
-        private const val ARG_TYPE   = "type"
-        private const val ARG_ID     = "id"
-        private const val ARG_AMOUNT = "amount"
-        private const val ARG_NOTE   = "note"
-        private const val ARG_DATE   = "date"
+        private const val ARG_TYPE     = "type"
+        private const val ARG_ID       = "id"
+        private const val ARG_AMOUNT   = "amount"
+        private const val ARG_NOTE     = "note"
+        private const val ARG_DATE     = "date"
+        private const val ARG_CATEGORY = "category"
 
         fun newInstance(type: String) = AddTransactionDialog().apply {
             arguments = Bundle().apply { putString(ARG_TYPE, type) }
@@ -42,11 +46,12 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
 
         fun newInstanceEdit(tx: Transaction) = AddTransactionDialog().apply {
             arguments = Bundle().apply {
-                putString(ARG_TYPE,   tx.type)
-                putString(ARG_ID,     tx.id)
-                putDouble(ARG_AMOUNT, tx.amount)
-                putString(ARG_NOTE,   tx.note ?: "")
-                putString(ARG_DATE,   tx.date)
+                putString(ARG_TYPE,     tx.type)
+                putString(ARG_ID,       tx.id)
+                putDouble(ARG_AMOUNT,   tx.amount)
+                putString(ARG_NOTE,     tx.note ?: "")
+                putString(ARG_DATE,     tx.date)
+                putString(ARG_CATEGORY, tx.category)
             }
         }
     }
@@ -68,10 +73,13 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
             val amount = args!!.getDouble(ARG_AMOUNT, 0.0)
             val note   = args.getString(ARG_NOTE, "")
             val date   = args.getString(ARG_DATE, LocalDate.now().toString())
+            selectedCategory = args.getString(ARG_CATEGORY)
             binding.etAmount.setText(if (amount == 0.0) "" else amount.toBigDecimal().stripTrailingZeros().toPlainString())
             binding.etNote.setText(note)
             runCatching { selectedDate = LocalDate.parse(date) }
         }
+
+        populateCategoryChips(initType)
 
         updateDateChip()
 
@@ -107,15 +115,37 @@ class AddTransactionDialog : BottomSheetDialogFragment() {
                 Toast.makeText(context, "Enter a valid amount", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            onSave?.invoke(amount, binding.etNote.text.toString().trim(), selectedDate.toString())
+            onSave?.invoke(amount, binding.etNote.text.toString().trim(), selectedDate.toString(), selectedCategory)
             dismiss()
         }
 
         binding.etAmount.postDelayed({ binding.etAmount.requestFocus() }, 200)
     }
 
+    private fun populateCategoryChips(type: String) {
+        binding.chipGroupCategory.removeAllViews()
+        val categories = DefaultCategories.forType(type)
+        for (cat in categories) {
+            val chip = Chip(requireContext()).apply {
+                text = cat
+                isCheckable = true
+                isChecked = cat == selectedCategory
+                setOnCheckedChangeListener { _, checked ->
+                    if (checked) {
+                        selectedCategory = cat
+                    } else if (selectedCategory == cat) {
+                        selectedCategory = null
+                    }
+                }
+            }
+            binding.chipGroupCategory.addView(chip)
+        }
+    }
+
     private fun selectType(type: String) {
         selectedType = type
+        selectedCategory = null
+        populateCategoryChips(type)
         val sale     = if (type == "sale")     R.drawable.bg_type_sale_selected     else R.drawable.bg_type_unselected
         val expense  = if (type == "expense")  R.drawable.bg_type_expense_selected  else R.drawable.bg_type_unselected
         val purchase = if (type == "purchase") R.drawable.bg_type_purchase_selected else R.drawable.bg_type_unselected
