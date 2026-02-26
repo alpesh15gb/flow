@@ -19,8 +19,8 @@ router.get('/summary', requireAuth, async (req, res) => {
     const result = await pool.query(
       `SELECT
          type,
-         SUM(amount) AS total,
-         COUNT(*) AS count
+         SUM(amount)::numeric AS total,
+         COUNT(*)::numeric AS count
        FROM transactions
        WHERE user_id = $1 AND ${dateFilter}
        GROUP BY type`,
@@ -37,8 +37,8 @@ router.get('/summary', requireAuth, async (req, res) => {
 
     res.json(summary);
   } catch (err) {
-    console.error('dashboard/summary error:', err.message);
-    res.status(500).json({ error: 'Server error' });
+    console.error('dashboard/summary error:', err.message, err.detail);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 
@@ -82,7 +82,7 @@ router.get('/monthly-chart', requireAuth, async (req, res) => {
       `SELECT
          TO_CHAR(DATE_TRUNC('month', date), 'YYYY-MM') AS month,
          type,
-         SUM(amount) AS total
+         SUM(amount)::numeric AS total
        FROM transactions
        WHERE user_id = $1
          AND date >= DATE_TRUNC('month', NOW()) - INTERVAL '${n - 1} months'
@@ -92,8 +92,8 @@ router.get('/monthly-chart', requireAuth, async (req, res) => {
     );
     res.json({ data: result.rows });
   } catch (err) {
-    console.error('dashboard/monthly-chart error:', err.message);
-    res.status(500).json({ error: 'Server error' });
+    console.error('dashboard/monthly-chart error:', err.message, err.detail);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 
@@ -201,9 +201,9 @@ router.get('/daily-health', requireAuth, async (req, res) => {
       // Outstanding + Overdue
       pool.query(
         `SELECT
-           COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' THEN s.amount - s.amount_paid ELSE 0 END), 0) AS outstanding,
-           COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' AND s.due_date IS NOT NULL AND s.due_date < $2::date THEN s.amount - s.amount_paid ELSE 0 END), 0) AS overdue,
-           COALESCE(COUNT(CASE WHEN s.status != 'COLLECTED' AND s.due_date = $2::date THEN 1 END), 0) AS pending_today
+           COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' THEN s.amount - s.amount_paid ELSE 0 END), 0)::numeric AS outstanding,
+           COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' AND s.due_date IS NOT NULL AND s.due_date < $2::date THEN s.amount - s.amount_paid ELSE 0 END), 0)::numeric AS overdue,
+           COALESCE(COUNT(CASE WHEN s.status != 'COLLECTED' AND s.due_date = $2::date THEN 1 END), 0)::numeric AS pending_today
          FROM slips s
          WHERE s.user_id = $1 AND s.is_payable = false`,
         [user_id, date_str]
@@ -239,8 +239,8 @@ router.get('/daily-health', requireAuth, async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('dashboard/daily-health error:', err.message);
-    res.status(500).json({ error: 'Server error' });
+    console.error('dashboard/daily-health error:', err.message, err.detail);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 
@@ -270,9 +270,9 @@ router.get('/monthly-close', requireAuth, async (req, res) => {
       // Monthly slips (billed) and collections
       pool.query(
         `SELECT
-           COALESCE(SUM(CASE WHEN s.is_payable = false THEN s.amount ELSE 0 END), 0) AS slips_billed,
-           COALESCE(SUM(CASE WHEN s.is_payable = false THEN s.amount_paid ELSE 0 END), 0) AS amount_paid_in_month,
-           COALESCE(SUM(CASE WHEN s.is_payable = false AND s.status != 'COLLECTED' THEN s.amount - s.amount_paid ELSE 0 END), 0) AS outstanding_all_time
+           COALESCE(SUM(CASE WHEN s.is_payable = false THEN s.amount ELSE 0 END), 0)::numeric AS slips_billed,
+           COALESCE(SUM(CASE WHEN s.is_payable = false THEN s.amount_paid ELSE 0 END), 0)::numeric AS amount_paid_in_month,
+           COALESCE(SUM(CASE WHEN s.is_payable = false AND s.status != 'COLLECTED' THEN s.amount - s.amount_paid ELSE 0 END), 0)::numeric AS outstanding_all_time
          FROM slips s
          WHERE s.user_id = $1
            AND DATE_TRUNC('month', s.date::date) = DATE_TRUNC('month', $2::date)
@@ -282,7 +282,7 @@ router.get('/monthly-close', requireAuth, async (req, res) => {
       // Monthly collections via slip_collections
       pool.query(
         `SELECT
-           COALESCE(SUM(amount_paid), 0) AS collections
+           COALESCE(SUM(amount_paid), 0)::numeric AS collections
          FROM slip_collections
          WHERE user_id = $1
            AND DATE_TRUNC('month', date::date) = DATE_TRUNC('month', $2::date)`,
@@ -328,8 +328,8 @@ router.get('/monthly-close', requireAuth, async (req, res) => {
       dso
     });
   } catch (err) {
-    console.error('dashboard/monthly-close error:', err.message);
-    res.status(500).json({ error: 'Server error' });
+    console.error('dashboard/monthly-close error:', err.message, err.detail);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 
@@ -343,11 +343,11 @@ router.get('/party-aging', requireAuth, async (req, res) => {
       `SELECT
          p.id,
          p.name,
-         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' THEN s.amount - s.amount_paid ELSE 0 END), 0) AS total_outstanding,
-         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' AND (s.due_date IS NULL OR s.due_date >= CURRENT_DATE) THEN s.amount - s.amount_paid ELSE 0 END), 0) AS current,
-         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' AND s.due_date < CURRENT_DATE AND s.due_date >= CURRENT_DATE - INTERVAL '30 days' THEN s.amount - s.amount_paid ELSE 0 END), 0) AS overdue_1_30,
-         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' AND s.due_date < CURRENT_DATE - INTERVAL '30 days' AND s.due_date >= CURRENT_DATE - INTERVAL '60 days' THEN s.amount - s.amount_paid ELSE 0 END), 0) AS overdue_30_60,
-         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' AND s.due_date < CURRENT_DATE - INTERVAL '60 days' THEN s.amount - s.amount_paid ELSE 0 END), 0) AS overdue_60_plus
+         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' THEN s.amount - s.amount_paid ELSE 0 END), 0)::numeric AS total_outstanding,
+         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' AND (s.due_date IS NULL OR s.due_date >= CURRENT_DATE) THEN s.amount - s.amount_paid ELSE 0 END), 0)::numeric AS current,
+         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' AND s.due_date < CURRENT_DATE AND s.due_date >= CURRENT_DATE - INTERVAL '30 days' THEN s.amount - s.amount_paid ELSE 0 END), 0)::numeric AS overdue_1_30,
+         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' AND s.due_date < CURRENT_DATE - INTERVAL '30 days' AND s.due_date >= CURRENT_DATE - INTERVAL '60 days' THEN s.amount - s.amount_paid ELSE 0 END), 0)::numeric AS overdue_30_60,
+         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' AND s.due_date < CURRENT_DATE - INTERVAL '60 days' THEN s.amount - s.amount_paid ELSE 0 END), 0)::numeric AS overdue_60_plus
        FROM parties p
        LEFT JOIN slips s ON s.party_id = p.id AND s.user_id = $1 AND s.is_payable = false
        WHERE p.user_id = $1
@@ -370,8 +370,8 @@ router.get('/party-aging', requireAuth, async (req, res) => {
 
     res.json({ parties });
   } catch (err) {
-    console.error('dashboard/party-aging error:', err.message);
-    res.status(500).json({ error: 'Server error' });
+    console.error('dashboard/party-aging error:', err.message, err.detail);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 
@@ -395,8 +395,8 @@ router.get('/category-breakdown', requireAuth, async (req, res) => {
       `SELECT
          type,
          COALESCE(category, 'Uncategorized') AS category,
-         SUM(amount) AS total,
-         COUNT(*) AS count
+         SUM(amount)::numeric AS total,
+         COUNT(*)::numeric AS count
        FROM transactions
        WHERE user_id = $1 AND ${dateFilter}
        GROUP BY type, category
@@ -413,8 +413,8 @@ router.get('/category-breakdown', requireAuth, async (req, res) => {
       }))
     });
   } catch (err) {
-    console.error('dashboard/category-breakdown error:', err.message);
-    res.status(500).json({ error: 'Server error' });
+    console.error('dashboard/category-breakdown error:', err.message, err.detail);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 
