@@ -105,9 +105,9 @@ router.get('/slips', requireAuth, async (req, res) => {
       `SELECT
          p.id,
          p.name,
-         COALESCE(SUM(s.amount), 0)                                                              AS total_billed,
-         COALESCE(SUM(s.amount_paid), 0)                                                         AS total_paid,
-         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' THEN s.amount - s.amount_paid ELSE 0 END), 0) AS outstanding,
+         COALESCE(SUM(s.amount), 0)::numeric                                                     AS total_billed,
+         COALESCE(SUM(s.amount_paid), 0)::numeric                                                AS total_paid,
+         COALESCE(SUM(CASE WHEN s.status != 'COLLECTED' THEN s.amount - s.amount_paid ELSE 0 END), 0)::numeric AS outstanding,
          COUNT(DISTINCT s.id)                                                                    AS slip_count,
          COUNT(DISTINCT CASE WHEN s.status != 'COLLECTED' THEN s.id END)                        AS pending_count
        FROM parties p
@@ -119,8 +119,8 @@ router.get('/slips', requireAuth, async (req, res) => {
     );
     res.json({ parties: result.rows });
   } catch (err) {
-    console.error('dashboard/slips error:', err.message);
-    res.status(500).json({ error: 'Server error' });
+    console.error('dashboard/slips error:', err.message, err.detail);
+    res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
 
